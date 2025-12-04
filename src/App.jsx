@@ -1,4 +1,3 @@
-import "./App.css";
 import { AuthProvider } from "./contexts/AuthContext";
 import AppRouter from "./routers";
 
