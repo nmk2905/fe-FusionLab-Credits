@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import authService from "../../services/apis/authApi";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -25,15 +26,20 @@ export default function Login() {
       setError(err);
       return;
     }
+
     setError("");
     setLoading(true);
-    // simulate async login
+
+    const loginData = {
+      username: email,
+      password: password,
+    };
+
     try {
-      await new Promise((res) => setTimeout(res, 1200));
-      // TODO: replace with real auth call
-      console.log({ email, password, remember });
-      // reset or redirect
+      const res = await authService.login(loginData); // 👈 gọi API login thật
+      console.log("Login successful", res);
     } catch (e) {
+      console.error(e);
       setError("Login failed. Try again.");
     } finally {
       setLoading(false);
