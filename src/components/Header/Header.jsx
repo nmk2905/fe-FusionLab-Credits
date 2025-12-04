@@ -1,167 +1,123 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import { Menu, X } from "lucide-react"; // Optional: nicer icons
 
 const Header = () => {
   const [open, setOpen] = useState(false);
+  const location = useLocation(); // To detect current route
+
+  const navLinks = [
+    { to: "/", label: "Home" },
+    { to: "/projects", label: "Projects" },
+    { to: "/credits", label: "Credits" },
+    { to: "/about", label: "About" },
+  ];
+
+  const isActive = (path) => location.pathname === path;
 
   return (
-    <header className="bg-white dark:bg-gray-900 shadow-sm">
+    <header className="bg-white shadow-md sticky top-0 z-50 border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Brand */}
-          <Link
-            to="/"
-            className="flex items-center space-x-3 text-gray-900 dark:text-white"
-            aria-label="FusionLab Credits"
-          >
-            <svg
-              className="w-8 h-8 text-indigo-600"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              aria-hidden="true"
-            >
-              <rect
-                x="2"
-                y="2"
-                width="20"
-                height="20"
-                rx="4"
-                fill="currentColor"
-              />
-              <path
-                d="M7 12h10"
-                stroke="white"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              />
-            </svg>
-            <span className="font-semibold text-lg">FusionLab Credits</span>
+          {/* Logo */}
+          <Link to="/" className="flex items-center space-x-3 group">
+            <div className="w-10 h-10 bg-orange-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+              <span className="text-white font-black text-xl">F</span>
+            </div>
+            <span className="font-bold text-xl text-gray-800 tracking-tight">
+              FusionLab <span className="text-orange-600">Credits</span>
+            </span>
           </Link>
 
-          {/* Desktop nav */}
-          <nav className="hidden md:flex items-center space-x-6">
-            <Link
-              to="/"
-              className="text-gray-600 dark:text-gray-300 hover:text-indigo-600"
-            >
-              Home
-            </Link>
-            <Link
-              to="/projects"
-              className="text-gray-600 dark:text-gray-300 hover:text-indigo-600"
-            >
-              Projects
-            </Link>
-            <Link
-              to="/credits"
-              className="text-gray-600 dark:text-gray-300 hover:text-indigo-600"
-            >
-              Credits
-            </Link>
-            <Link
-              to="/about"
-              className="text-gray-600 dark:text-gray-300 hover:text-indigo-600"
-            >
-              About
-            </Link>
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center space-x-8">
+            {navLinks.map((link) => (
+              <Link
+                key={link.to}
+                to={link.to}
+                className={`relative px-1 py-2 text-sm font-medium transition-colors duration-300
+                  ${isActive(link.to)
+                    ? "text-orange-600"
+                    : "text-gray-600 hover:text-orange-600"
+                  }`}
+              >
+                {link.label}
+                {/* Animated underline */}
+                {isActive(link.to) && (
+                  <span className="absolute bottom-0 left-0 w-full h-1 bg-orange-600 rounded-full transform origin-left scale-x-100 transition-transform duration-300"></span>
+                )}
+                <span className="absolute bottom-0 left-0 w-full h-1 bg-orange-600 rounded-full transform scale-x-0 hover:scale-x-100 transition-transform duration-300 origin-left"></span>
+              </Link>
+            ))}
           </nav>
 
-          {/* Actions */}
-          <div className="hidden md:flex items-center space-x-3">
+          {/* Desktop Actions */}
+          <div className="hidden md:flex items-center space-x-4">
             <Link
               to="/login"
-              className="px-3 py-1.5 rounded-md text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+              className="text-gray-700 hover:text-orange-600 font-medium transition"
             >
               Sign in
             </Link>
-
             <Link
               to="/get-credits"
-              className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md text-sm hover:bg-indigo-700"
+              className="px-5 py-2.5 bg-orange-600 text-white font-semibold rounded-full hover:bg-orange-700 hover:shadow-xl transform hover:scale-105 transition-all duration-300 shadow-lg"
             >
               Get Credits
             </Link>
           </div>
 
-          {/* Mobile menu button */}
-          <div className="md:hidden flex items-center">
-            <button
-              onClick={() => setOpen((s) => !s)}
-              aria-expanded={open}
-              aria-label="Toggle menu"
-              className="p-2 rounded-md text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
-            >
-              {open ? (
-                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M6 18L18 6M6 6l12 12"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              ) : (
-                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M4 6h16M4 12h16M4 18h16"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              )}
-            </button>
-          </div>
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setOpen(!open)}
+            className="md:hidden p-2 rounded-lg text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition"
+          >
+            {open ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
         </div>
       </div>
 
-      {/* Mobile menu panel */}
-      {open && (
-        <div className="md:hidden bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800">
-          <div className="px-4 py-3 space-y-2">
+      {/* Mobile Menu - Slide Down Animation */}
+      <div
+        className={`md:hidden overflow-hidden transition-all duration-500 ease-in-out ${
+          open ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+        }`}
+      >
+        <div className="bg-white border-t border-gray-100 px-4 py-6 space-y-4">
+          {navLinks.map((link) => (
             <Link
-              to="/"
-              className="block text-gray-700 dark:text-gray-200 py-2 rounded hover:bg-gray-50 dark:hover:bg-gray-800"
+              key={link.to}
+              to={link.to}
+              onClick={() => setOpen(false)}
+              className={`block py-3 px-4 rounded-lg text-lg font-medium transition-all ${
+                isActive(link.to)
+                  ? "bg-orange-100 text-orange-600 font-bold"
+                  : "text-gray-700 hover:bg-orange-50 hover:text-orange-600"
+              }`}
             >
-              Home
+              {link.label}
+              {isActive(link.to) && " ← Current"}
             </Link>
-            <Link
-              to="/projects"
-              className="block text-gray-700 dark:text-gray-200 py-2 rounded hover:bg-gray-50 dark:hover:bg-gray-800"
-            >
-              Projects
-            </Link>
-            <Link
-              to="/credits"
-              className="block text-gray-700 dark:text-gray-200 py-2 rounded hover:bg-gray-50 dark:hover:bg-gray-800"
-            >
-              Credits
-            </Link>
-            <Link
-              to="/about"
-              className="block text-gray-700 dark:text-gray-200 py-2 rounded hover:bg-gray-50 dark:hover:bg-gray-800"
-            >
-              About
-            </Link>
+          ))}
 
-            <div className="pt-2 border-t border-gray-100 dark:border-gray-800">
-              <Link
-                to="/signin"
-                className="block text-center w-full px-4 py-2 rounded-md text-indigo-600 hover:bg-gray-50 dark:hover:bg-gray-800"
-              >
-                Sign in
-              </Link>
-              <Link
-                to="/get-credits"
-                className="mt-2 block text-center w-full px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
-              >
-                Get Credits
-              </Link>
-            </div>
+          <div className="pt-4 border-t border-gray-200 space-y-3">
+            <Link
+              to="/login"
+              onClick={() => setOpen(false)}
+              className="block text-center py-3 text-orange-600 font-semibold hover:bg-orange-50 rounded-lg"
+            >
+              Sign in
+            </Link>
+            <Link
+              to="/get-credits"
+              onClick={() => setOpen(false)}
+              className="block text-center py-3 bg-orange-600 text-white font-bold rounded-xl hover:bg-orange-700 transform hover:scale-105 transition shadow-lg"
+            >
+              Get Credits
+            </Link>
           </div>
         </div>
-      )}
+      </div>
     </header>
   );
 };
