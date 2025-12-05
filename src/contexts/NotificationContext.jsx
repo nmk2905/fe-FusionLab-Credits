@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback } from "react";
+import { createContext, useState, useCallback } from "react";
 import Notification from "../components/Notification/Notification";
 
 const NotificationContext = createContext();
@@ -26,4 +26,4 @@ export const NotificationProvider = ({ children }) => {
   );
 };
 
-//export const useNotification = () => useContext(NotificationContext);
+export default NotificationContext;
