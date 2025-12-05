@@ -156,94 +156,102 @@ export default function HomeStudent() {
           </div>
         </section>
 
-{/* Features Grid - Clean 4 Cards, Perfectly Aligned */}
-<section className="py-20 bg-gray-50">
-  <div className="max-w-7xl mx-auto px-6">
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-      {/* Track Credits */}
-      <Link
-        to="/student/credits"
-        className="group block bg-white rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:border-orange-300 h-full flex flex-col justify-between"
-      >
-        <div className="flex items-start gap-5">
-          <div className="w-16 h-16 bg-orange-600 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-            <Wallet className="w-9 h-9 text-white" />
-          </div>
-          <div>
-            <h3 className="text-xl font-bold text-gray-900">Track Credits</h3>
-            <p className="mt-2 text-gray-600 text-sm">
-              Real-time balance, history, and instant notifications.
-            </p>
-          </div>
-        </div>
-        <span className="mt-6 inline-flex items-center text-orange-600 font-semibold text-sm group-hover:gap-3 transition-all">
-          View Credits <ArrowRight className="ml-2 h-4 w-4" />
-        </span>
-      </Link>
+        {/* Features Grid - Clean 4 Cards, Perfectly Aligned */}
+        <section className="py-20 bg-gray-50">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+              {/* Track Credits */}
+              <Link
+                to="/student/credits"
+                className="group block bg-white rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:border-orange-300 h-full flex flex-col justify-between"
+              >
+                <div className="flex items-start gap-5">
+                  <div className="w-16 h-16 bg-orange-600 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                    <Wallet className="w-9 h-9 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900">
+                      Track Credits
+                    </h3>
+                    <p className="mt-2 text-gray-600 text-sm">
+                      Real-time balance, history, and instant notifications.
+                    </p>
+                  </div>
+                </div>
+                <span className="mt-6 inline-flex items-center text-orange-600 font-semibold text-sm group-hover:gap-3 transition-all">
+                  View Credits <ArrowRight className="ml-2 h-4 w-4" />
+                </span>
+              </Link>
 
-      {/* Instant Transfers */}
-      <Link
-        to="/student/transactions"
-        className="group block bg-white rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:border-orange-300 h-full flex flex-col justify-between"
-      >
-        <div className="flex items-start gap-5">
-          <div className="w-16 h-16 bg-orange-600 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-            <Zap className="w-9 h-9 text-white" />
-          </div>
-          <div>
-            <h3 className="text-xl font-bold text-gray-900">Instant Transfers</h3>
-            <p className="mt-2 text-gray-600 text-sm">
-              Send credits to anyone in seconds. Zero fees.
-            </p>
-          </div>
-        </div>
-        <span className="mt-6 inline-flex items-center text-orange-600 font-semibold text-sm group-hover:gap-3 transition-all">
-          Transfer Now <ArrowRight className="ml-2 h-4 w-4" />
-        </span>
-      </Link>
+              {/* Instant Transfers */}
+              <Link
+                to="/student/transactions"
+                className="group block bg-white rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:border-orange-300 h-full flex flex-col justify-between"
+              >
+                <div className="flex items-start gap-5">
+                  <div className="w-16 h-16 bg-orange-600 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                    <Zap className="w-9 h-9 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900">
+                      Instant Transfers
+                    </h3>
+                    <p className="mt-2 text-gray-600 text-sm">
+                      Send credits to anyone in seconds. Zero fees.
+                    </p>
+                  </div>
+                </div>
+                <span className="mt-6 inline-flex items-center text-orange-600 font-semibold text-sm group-hover:gap-3 transition-all">
+                  Transfer Now <ArrowRight className="ml-2 h-4 w-4" />
+                </span>
+              </Link>
 
-      {/* Analytics */}
-      <Link
-        to="/student/analytics"
-        className="group block bg-white rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:border-orange-300 h-full flex flex-col justify-between"
-      >
-        <div className="flex items-start gap-5">
-          <div className="w-16 h-16 bg-orange-600 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-            <BarChart3 className="w-9 h-9 text-white" />
-          </div>
-          <div>
-            <h3 className="text-xl font-bold text-gray-900">Smart Analytics</h3>
-            <p className="mt-2 text-gray-600 text-sm">
-              Beautiful charts and insights into your spending.
-            </p>
-          </div>
-        </div>
-        <span className="mt-6 inline-flex items-center text-orange-600 font-semibold text-sm group-hover:gap-3 transition-all">
-          View Analytics <ArrowRight className="ml-2 h-4 w-4" />
-        </span>
-      </Link>
+              {/* Analytics */}
+              <Link
+                to="/student/analytics"
+                className="group block bg-white rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:border-orange-300 h-full flex flex-col justify-between"
+              >
+                <div className="flex items-start gap-5">
+                  <div className="w-16 h-16 bg-orange-600 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                    <BarChart3 className="w-9 h-9 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900">
+                      Smart Analytics
+                    </h3>
+                    <p className="mt-2 text-gray-600 text-sm">
+                      Beautiful charts and insights into your spending.
+                    </p>
+                  </div>
+                </div>
+                <span className="mt-6 inline-flex items-center text-orange-600 font-semibold text-sm group-hover:gap-3 transition-all">
+                  View Analytics <ArrowRight className="ml-2 h-4 w-4" />
+                </span>
+              </Link>
 
-      {/* Security - Non-clickable (or make it link to /security if you want) */}
-      <div className="group block bg-white rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 h-full flex flex-col justify-between cursor-default">
-        <div className="flex items-start gap-5">
-          <div className="w-16 h-16 bg-orange-600 rounded-2xl flex items-center justify-center flex-shrink-0">
-            <Shield className="w-9 h-9 text-white" />
+              {/* Security - Non-clickable (or make it link to /security if you want) */}
+              <div className="group block bg-white rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 h-full flex flex-col justify-between cursor-default">
+                <div className="flex items-start gap-5">
+                  <div className="w-16 h-16 bg-orange-600 rounded-2xl flex items-center justify-center flex-shrink-0">
+                    <Shield className="w-9 h-9 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900">
+                      Bank-Grade Security
+                    </h3>
+                    <p className="mt-2 text-gray-600 text-sm">
+                      End-to-end encryption and 2FA keep your credits 100% safe.
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-6 flex items-center text-green-600 font-semibold text-sm">
+                  <Lock className="h-4 w-4 mr-1" />
+                  Always Protected
+                </div>
+              </div>
+            </div>
           </div>
-          <div>
-            <h3 className="text-xl font-bold text-gray-900">Bank-Grade Security</h3>
-            <p className="mt-2 text-gray-600 text-sm">
-              End-to-end encryption and 2FA keep your credits 100% safe.
-            </p>
-          </div>
-        </div>
-        <div className="mt-6 flex items-center text-green-600 font-semibold text-sm">
-          <Lock className="h-4 w-4 mr-1" />
-          Always Protected
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+        </section>
       </div>
     </div>
   );
