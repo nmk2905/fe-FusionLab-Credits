@@ -1,6 +1,5 @@
 // File: HomeStudent.jsx
 import React, { useContext, useState } from "react";
-import MainLayout from "../../components/layout/MainLayout";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Wallet,
