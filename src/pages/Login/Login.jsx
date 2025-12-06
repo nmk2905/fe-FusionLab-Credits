@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import authService from "../../services/apis/authApi";
 import { useNotification } from "../../hook/useNotification";
 import { Link } from "react-router-dom";
+import { decodeToken } from "../../utils/tokenUtils";
 import {
   Key,            // ← Correct: PascalCase!
   Mail,
@@ -40,6 +41,42 @@ export default function Login() {
     return Object.keys(newErrors).length === 0;
   };
 
+  const handleAuthSuccess = (token, role) => {
+    localStorage.setItem("accessToken", token);
+    localStorage.setItem("role", role);
+    //showNotification(MESSAGES.AUTH.LOGIN_SUCCESS);
+    showNotification("Login successful", "success");
+
+    const redirectPaths = {
+      Admin: "/admin",
+      Staff: "/staff",
+      User: "/student",
+      Mentor: "/mentor",
+    };
+
+    setTimeout(() => {
+      window.location.href = redirectPaths[role] || redirectPaths.default;
+    }, 500);
+  };
+
+  const validateToken = (token) => {
+    const tokenInfo = decodeToken(token);
+    if (!tokenInfo) {
+      showNotification("Token không hợp lệ");
+      return null;
+    }
+
+    const currentTime = Date.now() / 1000;
+    if (tokenInfo.exp < currentTime) {
+      showNotification("Token đã hết hạn");
+      localStorage.removeItem("token");
+      localStorage.removeItem("role");
+      return null;
+    }
+
+    return tokenInfo;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) {
@@ -53,12 +90,11 @@ export default function Login() {
       const result = await authService.login(loginData);
       if (result.success) {
         showNotification(result.message || "Login successful!", "success");
-        if (result.data?.token) localStorage.setItem("token", result.data.token);
-        if (result.data?.user) localStorage.setItem("user", JSON.stringify(result.data.user));
 
-        setTimeout(() => {
-          window.location.href = "/dashboard";
-        }, 1000);
+        const tokenInfo = validateToken(result.data.accessToken);
+        if (!tokenInfo) return;
+
+        handleAuthSuccess(result.data.accessToken, tokenInfo.role);
       } else {
         let errorMsg = result.error || "Login failed. Please check your credentials.";
         if (result.status === 401) {

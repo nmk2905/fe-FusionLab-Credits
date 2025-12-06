@@ -80,7 +80,7 @@ export default function Register() {
           "Welcome to FusionLab! Your lab access is ready!",
           "success"
         );
-        setTimeout(() => navigate("/login"), 1500);
+        setTimeout(() => navigate("/"), 1500);
       } else {
         const msg =
           result.status === 400 &&
@@ -93,6 +93,8 @@ export default function Register() {
       }
     } catch (err) {
       showNotification("Network error. Please try again.", "error");
+      console.log("Error: ", err);
+      
     } finally {
       setLoading(false);
     }

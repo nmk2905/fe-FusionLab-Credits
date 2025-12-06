@@ -8,10 +8,10 @@ export const API_ENDPOINTS_AUTH = {
 
 // Các endpoint cho user
 export const API_ENDPOINTS_USER = {
-  GET_USER: "/api/User/GetCurrentUser",
+  GET_USER: (userId) => `/api/Users/${userId}`,
   UPDATE_INFORMATION_USER: "/api/User/UpdateInfoUser",
 };
 
 export const API_ENDPOINTS_PROJECT = {
   GET_PROJECT_BY_ID: (projectId) => `/api/projects/${projectId}`,
-}
+};

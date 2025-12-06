@@ -14,35 +14,49 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const initializeAuth = async () => {
-      const token = localStorage.getItem("token");
-      if (token) {
-        const tokenInfo = decodeToken(token);
-        if (tokenInfo && tokenInfo.exp > Date.now() / 1000) {
-          // Lưu role vào localStorage
-          localStorage.setItem("role", tokenInfo.role);
-          setIsAuthenticated(true);
-          // Gọi API để lấy thông tin user
-          try {
-            const response = await userService.getCurrentUser();
-            if (response.success) {
-              setUser(response.data.data); // Cập nhật user từ API
-            } else {
-              console.error("Failed to fetch user data:", response.error);
-            }
-          } catch (error) {
-            console.error("Error fetching user data:", error);
-          }
-        } else {
-          localStorage.removeItem("token");
-          localStorage.removeItem("role"); // Xóa role nếu token hết hạn
-          setHasCheckedIn(true); // Reset trạng thái điểm danh
-        }
+      const token = localStorage.getItem("accessToken");
+
+      if (!token) {
+        setLoading(false);
+        return;
       }
-      setLoading(false);
+
+      try {
+        const tokenInfo = decodeToken(token);
+        console.log("Token info:", tokenInfo);
+
+        if (!tokenInfo || tokenInfo.exp <= Date.now() / 1000) {
+          console.log("Token invalid or expired");
+          localStorage.removeItem("accessToken");
+          localStorage.removeItem("role");
+          setLoading(false);
+          return;
+        }
+
+        localStorage.setItem("role", tokenInfo.role);
+        setIsAuthenticated(true);
+
+        // Sửa API call: kiểm tra tokenInfo.userId
+        if (tokenInfo.userId) {
+          const response = await userService.getCurrentUser(tokenInfo.userId);
+          console.log("User API response:", response);
+
+          if (response && response.success && response.data) {
+            setUser(response.data);
+          } else {
+            console.warn("No user data in response");
+          }
+        }
+      } catch (error) {
+        console.error("Auth initialization error:", error);
+        localStorage.clear();
+      } finally {
+        setLoading(false);
+      }
     };
 
     initializeAuth();
-  }, [isUpdate]); // Chỉ chạy một lần khi component mount
+  }, [isUpdate]);
 
   const login = async (userData, token) => {
     if (!userData || !token) {
@@ -56,7 +70,7 @@ export const AuthProvider = ({ children }) => {
       return;
     }
 
-    localStorage.setItem("token", token); // Chỉ lưu token
+    localStorage.setItem("accessToken", token); // Chỉ lưu token
     localStorage.setItem("role", tokenInfo.role); // Lưu role từ token
     setIsAuthenticated(true);
 
@@ -79,7 +93,6 @@ export const AuthProvider = ({ children }) => {
     setIsAuthenticated(false);
     setHasCheckedIn(true); // Reset trạng thái điểm danh khi đăng xuất
   };
-
 
   return (
     <AuthContext.Provider
