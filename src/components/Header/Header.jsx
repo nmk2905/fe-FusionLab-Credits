@@ -54,7 +54,7 @@ const Header = () => {
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
             <Link
-              to="/login"
+              to="/"
               className="text-gray-700 hover:text-orange-600 font-medium transition"
             >
               Sign in
@@ -102,7 +102,7 @@ const Header = () => {
 
           <div className="pt-4 border-t border-gray-200 space-y-3">
             <Link
-              to="/login"
+              to="/"
               onClick={() => setOpen(false)}
               className="block text-center py-3 text-orange-600 font-semibold hover:bg-orange-50 rounded-lg"
             >

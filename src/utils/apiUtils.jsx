@@ -36,14 +36,13 @@ export const performApiRequest = async (
     };
 
     // Xử lý đặc biệt cho FormData
-    if (data instanceof FormData) {
-      // Nếu là FormData, để axios tự set Content-Type
+    // Xử lý đặc biệt cho FormData
+    if (data instanceof FormData || isMultipart) {
+      // Để axios tự set boundary cho FormData
       delete config.headers["Content-Type"];
-      config.headers["Content-Type"] = "multipart/form-data";
     }
 
     console.log(`API Call: ${method} ${endpoint}`, {
-      data: data instanceof FormData ? "[FormData]" : data,
       headers: config.headers,
     });
 

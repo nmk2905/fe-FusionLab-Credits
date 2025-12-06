@@ -1,7 +1,7 @@
 // File: HomeStudent.jsx
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import MainLayout from "../../components/layout/MainLayout";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Wallet,
   ArrowRight,
@@ -22,10 +22,14 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import { AuthContext } from "../../contexts/AuthContext";
+import Loading from "../../components/Loading/Loading";
 
 export default function HomeStudent() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+  const { user, loading, logout } = useContext(AuthContext);
+  const navigate = useNavigate();
 
   const menuItems = [
     { to: "/student/dashboard", icon: Home, label: "Dashboard" },
@@ -42,95 +46,113 @@ export default function HomeStudent() {
     { to: "/student/rewards", icon: Gift, label: "Rewards" },
   ];
 
+  const handleLogout = () => {
+    logout();
+    navigate("/"); // Chuyển hướng về trang login
+  };
+
+  if (loading) {
+    return <Loading />;
+  }
+
   return (
     <div className="flex min-h-screen bg-gray-50">
-      {/* Sidebar - Clean & Modern */}
-      <aside
-        className={`${
-          isSidebarOpen ? "w-64" : "w-20"
-        } bg-white shadow-2xl transition-all duration-300 ease-in-out flex flex-col relative border-r border-gray-200`}
-      >
-        {/* Elegant Toggle Button - Best UX Position */}
-        <div className="absolute -right-3 top-24 z-10">
-          <button
-            onClick={toggleSidebar}
-            className="bg-orange-600 text-white p-2 rounded-full shadow-lg hover:bg-orange-700 hover:scale-110 transition-all duration-200 border-4 border-white"
-            aria-label="Toggle sidebar"
-          >
-            {isSidebarOpen ? (
-              <ChevronLeft className="h-5 w-5" />
-            ) : (
-              <ChevronRight className="h-5 w-5" />
-            )}
-          </button>
-        </div>
-
-        {/* Logo Area */}
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center">
-            <div className="bg-orange-600 p-3 rounded-xl shadow-md">
-              <Wallet className="h-8 w-8 text-white" />
-            </div>
-            {isSidebarOpen && (
-              <div className="ml-4 transition-all">
-                <h2 className="text-2xl font-bold text-gray-900">FusionLab</h2>
-                <p className="text-orange-600 text-sm font-semibold">
-                  Student Portal
-                </p>
-              </div>
-            )}
+      {/* Sidebar - Clean & Modern - FIXED HEIGHT */}
+      <div className="flex">
+        <aside
+          className={`${
+            isSidebarOpen ? "w-64" : "w-20"
+          } bg-white shadow-2xl transition-all duration-300 ease-in-out flex flex-col relative border-r border-gray-200 h-screen sticky top-0`}
+        >
+          {/* Elegant Toggle Button - Best UX Position */}
+          <div className="absolute -right-3 top-24 z-10">
+            <button
+              onClick={toggleSidebar}
+              className="bg-orange-600 text-white p-2 rounded-full shadow-lg hover:bg-orange-700 hover:scale-110 transition-all duration-200 border-4 border-white"
+              aria-label="Toggle sidebar"
+            >
+              {isSidebarOpen ? (
+                <ChevronLeft className="h-5 w-5" />
+              ) : (
+                <ChevronRight className="h-5 w-5" />
+              )}
+            </button>
           </div>
-        </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 p-4">
-          <ul className="space-y-2">
-            {menuItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = item.active;
-              return (
-                <li key={item.to}>
-                  <Link
-                    to={item.to}
-                    className={`flex items-center px-4 py-3 rounded-xl transition-all group relative ${
-                      isActive
-                        ? "bg-orange-100 text-orange-600 font-bold shadow-md"
-                        : "text-gray-700 hover:bg-orange-50 hover:text-orange-600"
-                    }`}
-                  >
-                    <Icon className="h-5 w-5 flex-shrink-0" />
-                    {isSidebarOpen && (
-                      <span className="ml-4">{item.label}</span>
-                    )}
-                    {!isSidebarOpen && (
-                      <div className="absolute left-full ml-3 px-4 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-all pointer-events-none whitespace-nowrap z-50 shadow-xl">
-                        {item.label}
-                        <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 border-8 border-transparent border-r-gray-900"></div>
-                      </div>
-                    )}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
-
-        {/* Logout */}
-        <div className="p-4 border-t border-gray-200">
-          <button className="flex items-center w-full px-4 py-3 rounded-xl text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-all group relative">
-            <LogOut className="h-5 w-5 flex-shrink-0" />
-            {isSidebarOpen && <span className="ml-4 font-medium">Logout</span>}
-            {!isSidebarOpen && (
-              <div className="absolute left-full ml-3 px-4 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-all pointer-events-none whitespace-nowrap z-50 shadow-xl">
-                Logout
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 border-8 border-transparent border-r-gray-900"></div>
+          {/* Logo Area */}
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex items-center">
+              <div className="bg-orange-600 p-3 rounded-xl shadow-md">
+                <Wallet className="h-8 w-8 text-white" />
               </div>
-            )}
-          </button>
-        </div>
-      </aside>
+              {isSidebarOpen && (
+                <div className="ml-4 transition-all">
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    FusionLab
+                  </h2>
+                  <p className="text-orange-600 text-sm font-semibold">
+                    Student Portal
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
 
-      {/* Main Content */}
+          {/* Navigation */}
+          <nav className="flex-1 p-4 overflow-y-auto">
+            <ul className="space-y-2">
+              {menuItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = item.active;
+                return (
+                  <li key={item.to}>
+                    <Link
+                      to={item.to}
+                      className={`flex items-center px-4 py-3 rounded-xl transition-all group relative ${
+                        isActive
+                          ? "bg-orange-100 text-orange-600 font-bold shadow-md"
+                          : "text-gray-700 hover:bg-orange-50 hover:text-orange-600"
+                      }`}
+                    >
+                      <Icon className="h-5 w-5 flex-shrink-0" />
+                      {isSidebarOpen && (
+                        <span className="ml-4">{item.label}</span>
+                      )}
+                      {!isSidebarOpen && (
+                        <div className="absolute left-full ml-3 px-4 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-all pointer-events-none whitespace-nowrap z-50 shadow-xl">
+                          {item.label}
+                          <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 border-8 border-transparent border-r-gray-900"></div>
+                        </div>
+                      )}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
+
+          {/* Logout Button - Fixed at bottom */}
+          <div className="p-4 border-t border-gray-200 mt-auto">
+            <button
+              onClick={handleLogout}
+              className="flex items-center w-full px-4 py-3 rounded-xl text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-all group relative"
+            >
+              <LogOut className="h-5 w-5 flex-shrink-0" />
+              {isSidebarOpen && (
+                <span className="ml-4 font-medium">Logout</span>
+              )}
+              {!isSidebarOpen && (
+                <div className="absolute left-full ml-3 px-4 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-all pointer-events-none whitespace-nowrap z-50 shadow-xl">
+                  Logout
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 border-8 border-transparent border-r-gray-900"></div>
+                </div>
+              )}
+            </button>
+          </div>
+        </aside>
+      </div>
+
+      {/* Main Content - Scrollable */}
       <div className="flex-1 overflow-auto">
         {/* Hero */}
         <section className="bg-gradient-to-br from-orange-500 via-orange-600 to-red-600 text-white py-20">
@@ -138,7 +160,9 @@ export default function HomeStudent() {
             <h1 className="text-5xl md:text-6xl font-black leading-tight">
               Welcome Back,
               <br />
-              <span className="text-orange-200">Student</span>
+              <span className="text-orange-200">
+                {user?.fullName || "Student"}
+              </span>
             </h1>
             <p className="mt-6 text-xl md:text-2xl opacity-90">
               Manage your FusionLab Credits easily and securely.
@@ -229,7 +253,7 @@ export default function HomeStudent() {
                 </span>
               </Link>
 
-              {/* Security - Non-clickable (or make it link to /security if you want) */}
+              {/* Security */}
               <div className="group block bg-white rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 h-full flex flex-col justify-between cursor-default">
                 <div className="flex items-start gap-5">
                   <div className="w-16 h-16 bg-orange-600 rounded-2xl flex items-center justify-center flex-shrink-0">
