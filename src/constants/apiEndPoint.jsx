@@ -8,6 +8,8 @@ export const API_ENDPOINTS_AUTH = {
 
 // Các endpoint cho user
 export const API_ENDPOINTS_USER = {
+  GET_USERS: (role = "", pageIndex = 1, pageSize = 10, sortDir = "desc", search = "") =>
+    `/api/Users?Search=${search}&Role=${role}&PageIndex=${pageIndex}&PageSize=${pageSize}&SortDir=${sortDir}`,
   GET_USER: (userId) => `/api/Users/${userId}`,
   UPDATE_INFORMATION_USER: "/api/User/UpdateInfoUser",
 };
