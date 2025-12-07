@@ -4,7 +4,7 @@ import { useNotification } from "../../hook/useNotification";
 import { Link } from "react-router-dom";
 import { decodeToken } from "../../utils/tokenUtils";
 import {
-  Key,            // ← Correct: PascalCase!
+  Key, // ← Correct: PascalCase!
   Mail,
   Lock,
   Eye,
@@ -34,8 +34,6 @@ export default function Login() {
     }
     if (!password) {
       newErrors.password = "Password is required";
-    } else if (password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -96,10 +94,14 @@ export default function Login() {
 
         handleAuthSuccess(result.data.accessToken, tokenInfo.role);
       } else {
-        let errorMsg = result.error || "Login failed. Please check your credentials.";
+        let errorMsg =
+          result.error || "Login failed. Please check your credentials.";
         if (result.status === 401) {
           errorMsg = "Invalid email or password";
-          setErrors({ email: "Invalid credentials", password: "Invalid credentials" });
+          setErrors({
+            email: "Invalid credentials",
+            password: "Invalid credentials",
+          });
         } else if (result.status === 400 && result.data?.errors) {
           const serverErrors = {};
           Object.keys(result.data.errors).forEach((key) => {
@@ -115,7 +117,10 @@ export default function Login() {
       }
     } catch (error) {
       console.error("Unexpected error:", error);
-      showNotification("An unexpected error occurred. Please try again.", "error");
+      showNotification(
+        "An unexpected error occurred. Please try again.",
+        "error"
+      );
     } finally {
       setLoading(false);
     }
@@ -168,7 +173,7 @@ export default function Login() {
                 <animate
                   attributeName="stroke-opacity"
                   values="0.05;0.2;0.05"
-                  dur={`${12 + i % 5}s`}
+                  dur={`${12 + (i % 5)}s`}
                   repeatCount="indefinite"
                 />
               </line>
@@ -186,7 +191,7 @@ export default function Login() {
                 <animate
                   attributeName="stroke-opacity"
                   values="0.05;0.15;0.05"
-                  dur={`${15 + i % 7}s`}
+                  dur={`${15 + (i % 7)}s`}
                   repeatCount="indefinite"
                 />
               </line>
@@ -231,8 +236,6 @@ export default function Login() {
             </g>
           ))}
 
-        
-
           {/* Pulsating energy orbs */}
           {[
             { cx: 600, cy: 600, r: 120, delay: 0 },
@@ -269,16 +272,20 @@ export default function Login() {
       {/* Login Card & Content */}
       <div className="max-w-md w-full relative z-10">
         <div className="text-center mb-10">
-         <div className="flex justify-center mb-6">
-            <div className="bg-orange-600 p-6 rounded-3xl shadow-2xl shadow-orange-600/60 
-                            transform hover:scale-110 transition-all duration-300">
+          <div className="flex justify-center mb-6">
+            <div
+              className="bg-orange-600 p-6 rounded-3xl shadow-2xl shadow-orange-600/60 
+                            transform hover:scale-110 transition-all duration-300"
+            >
               <Key className="h-14 w-14 text-white" strokeWidth={2.5} />
             </div>
           </div>
           <h1 className="text-4xl font-black text-gray-900">FusionLab</h1>
-          <p className="mt-2 text-xl text-orange-600 font-semibold">Student Portal</p>
+          <p className="mt-2 text-xl text-orange-600 font-semibold">
+            Student Portal
+          </p>
           <p className="mt-4 text-gray-600">
-            Sign in to manage your credits and  projects journey.
+            Sign in to manage your credits and projects journey.
           </p>
         </div>
 
@@ -286,7 +293,9 @@ export default function Login() {
           <form className="space-y-6" onSubmit={handleSubmit} noValidate>
             {/* Email */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Lab Email</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Lab Email
+              </label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
                 <input
@@ -299,18 +308,24 @@ export default function Login() {
                   placeholder="developer@university.edu"
                 />
               </div>
-              {errors.email && <p className="mt-2 text-sm text-red-600">{errors.email}</p>}
+              {errors.email && (
+                <p className="mt-2 text-sm text-red-600">{errors.email}</p>
+              )}
             </div>
 
             {/* Password */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Access Code</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Access Code
+              </label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
-                  onChange={(e) => handleInputChange("password", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("password", e.target.value)
+                  }
                   className={`w-full pl-12 pr-12 py-3 bg-gray-50 border rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all text-gray-900 placeholder-gray-500 ${
                     errors.password ? "border-red-500" : "border-gray-300"
                   }`}
@@ -321,10 +336,16 @@ export default function Login() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                 >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
                 </button>
               </div>
-              {errors.password && <p className="mt-2 text-sm text-red-600">{errors.password}</p>}
+              {errors.password && (
+                <p className="mt-2 text-sm text-red-600">{errors.password}</p>
+              )}
             </div>
 
             {/* Remember & Forgot */}
@@ -338,18 +359,35 @@ export default function Login() {
                 />
                 <div
                   className={`w-5 h-5 border-2 rounded flex items-center justify-center transition-all ${
-                    remember ? "bg-orange-600 border-orange-600" : "border-gray-400"
+                    remember
+                      ? "bg-orange-600 border-orange-600"
+                      : "border-gray-400"
                   }`}
                 >
                   {remember && (
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                    <svg
+                      className="w-4 h-4 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="3"
+                        d="M5 13l4 4L19 7"
+                      />
                     </svg>
                   )}
                 </div>
-                <span className="ml-3 text-sm text-gray-600">Remember this device</span>
+                <span className="ml-3 text-sm text-gray-600">
+                  Remember this device
+                </span>
               </label>
-              <Link to="/forgot-password" className="text-sm font-medium text-orange-600 hover:text-orange-700">
+              <Link
+                to="/forgot-password"
+                className="text-sm font-medium text-orange-600 hover:text-orange-700"
+              >
                 Forgot code?
               </Link>
             </div>
@@ -362,9 +400,23 @@ export default function Login() {
             >
               {loading ? (
                 <>
-                  <svg className="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a12 12 0 100 24v-4l-3 3 3 3v-4a8 8 0 01-8-8z" />
+                  <svg
+                    className="animate-spin h-5 w-5 mr-3"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v4l3-3-3-3v4a12 12 0 100 24v-4l-3 3 3 3v-4a8 8 0 01-8-8z"
+                    />
                   </svg>
                   Connecting...
                 </>
@@ -380,7 +432,10 @@ export default function Login() {
           <div className="mt-8 text-center">
             <p className="text-sm text-gray-600">
               New to the Lab?{" "}
-              <Link to="/register" className="font-bold text-orange-600 hover:text-orange-700">
+              <Link
+                to="/register"
+                className="font-bold text-orange-600 hover:text-orange-700"
+              >
                 Join the Adventure
                 <ArrowRight className="inline ml-1 h-4 w-4" />
               </Link>
@@ -390,7 +445,9 @@ export default function Login() {
 
         <div className="text-center mt-8 text-sm text-gray-500">
           <p>Fusion Game Lab • SE Innovation Lab • Semester System</p>
-          <p className="mt-1">Earn credits, build games, level up your career</p>
+          <p className="mt-1">
+            Earn credits, build games, level up your career
+          </p>
         </div>
       </div>
     </div>
