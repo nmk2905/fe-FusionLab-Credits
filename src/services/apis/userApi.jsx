@@ -5,7 +5,7 @@ const userService = {
   async getUsers({
     role,
     pageIndex = 1,
-    pageSize = 10,
+    pageSize = 1000,
     sortDir = "desc",
     search = "",
   } = {}) {
