@@ -26,7 +26,7 @@ export default function AccountManagement() {
 
   // Phân trang
   const [pageIndex, setPageIndex] = useState(1);
-  const [pageSize] = useState(10);
+  const [pageSize] = useState(1000);
   const [totalPages, setTotalPages] = useState(1);
   const [totalUsers, setTotalUsers] = useState(0);
 
@@ -42,12 +42,15 @@ export default function AccountManagement() {
         role: roleFilter,
         pageIndex,
         pageSize,
-        sortDir: "desc", // hoặc "asc" tùy bạn
+        sortDir: "asc", // hoặc "asc" tùy bạn
         search: searchTerm || undefined, // nếu có thêm search ở backend
       });
 
+      console.log(response);
+      
+
       // Giả sử API trả về cấu trúc: { data: [], totalCount: number, totalPages: number }
-      setUsers(response.data || response.items || []);
+      setUsers(response?.data?.contends || response.items || []);
       setTotalUsers(response.totalCount || response.total || 0);
       setTotalPages(
         response.totalPages || Math.ceil((response.totalCount || 0) / pageSize)
@@ -236,12 +239,12 @@ export default function AccountManagement() {
                         <td className="px-6 py-4">
                           <span
                             className={`px-3 py-1 rounded-full text-xs font-medium ${
-                              user.status === "active" || user.isActive
+                              user.status === "Active" || user.isActive
                                 ? "bg-green-100 text-green-800"
                                 : "bg-red-100 text-red-800"
                             }`}
                           >
-                            {user.status === "active" || user.isActive
+                            {user.status === "Active" || user.isActive
                               ? "Hoạt động"
                               : "Đã khóa"}
                           </span>
