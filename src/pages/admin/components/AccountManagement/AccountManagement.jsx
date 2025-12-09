@@ -12,8 +12,14 @@ import {
   UserCog,
   Loader2,
   AlertCircle,
+  Eye,
+  Lock,
+  Unlock,
 } from "lucide-react";
-import userService from "../../../services/apis/userApi"; // Đảm bảo đường dẫn đúng
+import userService from "../../../../services/apis/userApi";
+import CreateAccountModal from "../AccountManagement/components/CreateAccountModal";
+import ViewAccountModal from "../AccountManagement/components/ViewAccountModal";
+import EditAccountModal from "../AccountManagement/components/EditAccountModal";
 
 export default function AccountManagement() {
   const [users, setUsers] = useState([]);
@@ -30,7 +36,28 @@ export default function AccountManagement() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalUsers, setTotalUsers] = useState(0);
 
-  // Hàm gọi API lấy danh sách người dùng
+  // Modal states
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+
+  // Role options for creating accounts (chỉ mentor và finance)
+  const roleOptions = [
+    { value: "Mentor", label: "Giảng viên/Hướng dẫn", icon: UserCog },
+    { value: "Finance", label: "Nhân viên tài chính", icon: Users },
+    // Có thể thêm các role khác nếu cần
+  ];
+
+  // Role options for filtering (bao gồm tất cả)
+  const filterRoleOptions = [
+    { value: "all", label: "Tất cả vai trò" },
+    { value: "Mentor", label: "Giảng viên" },
+    { value: "User", label: "Sinh viên" },
+    { value: "Staff", label: "Quản trị viên" },
+    { value: "Finance", label: "Nhân viên tài chính" },
+  ];
+
   const fetchUsers = async () => {
     try {
       setLoading(true);
@@ -42,14 +69,12 @@ export default function AccountManagement() {
         role: roleFilter,
         pageIndex,
         pageSize,
-        sortDir: "asc", // hoặc "asc" tùy bạn
-        search: searchTerm || undefined, // nếu có thêm search ở backend
+        sortDir: "desc",
+        search: searchTerm || undefined,
       });
 
-      console.log(response);
-      
+      console.log("Users response:", response);
 
-      // Giả sử API trả về cấu trúc: { data: [], totalCount: number, totalPages: number }
       setUsers(response?.data?.contends || response.items || []);
       setTotalUsers(response.totalCount || response.total || 0);
       setTotalPages(
@@ -64,35 +89,137 @@ export default function AccountManagement() {
     }
   };
 
-  // Gọi API khi thay đổi bộ lọc, trang, tìm kiếm
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
-      setPageIndex(1); // Reset về trang 1 khi tìm kiếm hoặc lọc
+      setPageIndex(1);
       fetchUsers();
-    }, 500); // Debounce 500ms để tránh gọi API liên tục khi gõ tìm kiếm
+    }, 500);
 
     return () => clearTimeout(delayDebounce);
   }, [searchTerm, selectedRole]);
 
-  // Gọi lại khi đổi trang
   useEffect(() => {
     fetchUsers();
   }, [pageIndex]);
+
+  const handleViewUser = (user) => {
+    setSelectedUser(user);
+    setShowViewModal(true);
+  };
+
+  const handleEditUser = (user) => {
+    setSelectedUser(user);
+    setShowEditModal(true);
+  };
 
   const handleDelete = async (id) => {
     if (!window.confirm("Bạn có chắc muốn xóa tài khoản này?")) return;
 
     try {
-      // await userService.deleteUser(id); // Nếu có API xóa
+      await userService.deleteUser(id);
       setUsers(users.filter((u) => u.id !== id));
       alert("Xóa thành công!");
     } catch (err) {
+      console.error("Lỗi khi xóa:", err);
       alert("Xóa thất bại!");
     }
   };
 
+  const handleToggleStatus = async (user) => {
+    const newStatus = user.status === "Active" ? "Inactive" : "Active";
+    const confirmMessage =
+      newStatus === "Active"
+        ? "Bạn có chắc muốn kích hoạt tài khoản này?"
+        : "Bạn có chắc muốn khóa tài khoản này?";
+
+    if (!window.confirm(confirmMessage)) return;
+
+    try {
+      // Gọi API để cập nhật trạng thái
+      await userService.updateUserStatus(user.id, { status: newStatus });
+
+      // Cập nhật local state
+      setUsers(
+        users.map((u) =>
+          u.id === user.id
+            ? { ...u, status: newStatus, isActive: newStatus === "Active" }
+            : u
+        )
+      );
+
+      alert(`Đã ${newStatus === "Active" ? "kích hoạt" : "khóa"} tài khoản!`);
+    } catch (err) {
+      console.error("Lỗi khi cập nhật trạng thái:", err);
+      alert("Cập nhật trạng thái thất bại!");
+    }
+  };
+
+  const handleCreateSuccess = (newUser) => {
+    // Thêm user mới vào danh sách
+    setUsers([newUser, ...users]);
+    setTotalUsers((prev) => prev + 1);
+    setShowCreateModal(false);
+    alert("Tạo tài khoản thành công!");
+  };
+
+  const handleEditSuccess = (updatedUser) => {
+    setUsers(users.map((u) => (u.id === updatedUser.id ? updatedUser : u)));
+    setShowEditModal(false);
+    alert("Cập nhật tài khoản thành công!");
+  };
+
   const handleExport = () => {
-    alert("Chức năng export đang được phát triển...");
+    // Lọc và định dạng dữ liệu để export
+    const exportData = users.map((user) => ({
+      ID: user.id,
+      "Họ tên": user.name || user.fullName,
+      Email: user.email,
+      "Vai trò": user.role,
+      "Trạng thái": user.status === "Active" ? "Hoạt động" : "Đã khóa",
+      "Ngày tạo": user.createdAt || new Date().toLocaleDateString(),
+    }));
+
+    // Tạo CSV
+    const csvContent = [
+      Object.keys(exportData[0]).join(","),
+      ...exportData.map((row) => Object.values(row).join(",")),
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute(
+      "download",
+      `accounts_${new Date().toISOString().split("T")[0]}.csv`
+    );
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    alert("Xuất file CSV thành công!");
+  };
+
+  // Hàm format hiển thị role
+  const formatRoleDisplay = (user) => {
+    // Nếu user.roles là mảng, lấy role đầu tiên
+    const role =
+      Array.isArray(user.roles) && user.roles.length > 0
+        ? user.roles[0].name
+        : user.role || "Chưa xác định";
+
+    const roleMap = {
+      Mentor: "Giảng viên",
+      User: "Sinh viên",
+      Staff: "Quản trị viên",
+      Finance: "Nhân viên tài chính",
+      "Giảng viên": "Giảng viên",
+      "Sinh viên": "Sinh viên",
+      "Quản trị viên": "Quản trị viên",
+      "Nhân viên tài chính": "Nhân viên tài chính",
+    };
+    return roleMap[role] || role;
   };
 
   return (
@@ -105,7 +232,7 @@ export default function AccountManagement() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-800">Quản lý Tài khoản</h1>
         <p className="text-gray-600">
-          Quản lý tài khoản giảng viên, sinh viên và quản trị viên
+          Quản lý và tạo tài khoản cho giảng viên, nhân viên tài chính
         </p>
       </div>
 
@@ -119,7 +246,7 @@ export default function AccountManagement() {
             />
             <input
               type="text"
-              placeholder="Tìm kiếm theo tên hoặc email..."
+              placeholder="Tìm kiếm theo tên, email hoặc ID..."
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -134,17 +261,20 @@ export default function AccountManagement() {
                 value={selectedRole}
                 onChange={(e) => setSelectedRole(e.target.value)}
               >
-                <option value="all">Tất cả vai trò</option>
-                <option value="Mentor">Giảng viên</option>
-                <option value="User">Sinh viên</option>
-                <option value="Staff">Quản trị viên</option>
-                <option value="Finance">Nhân viên tài chính</option>
+                {filterRoleOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </select>
             </div>
 
-            <button className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition">
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition"
+            >
               <UserPlus size={20} />
-              <span>Thêm tài khoản</span>
+              <span>Tạo tài khoản</span>
             </button>
 
             <button
@@ -152,7 +282,7 @@ export default function AccountManagement() {
               className="flex items-center gap-2 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 transition"
             >
               <Download size={20} />
-              <span>Export</span>
+              <span>Export CSV</span>
             </button>
           </div>
         </div>
@@ -170,6 +300,12 @@ export default function AccountManagement() {
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center gap-2">
           <AlertCircle size={20} />
           <span>{error}</span>
+          <button
+            onClick={fetchUsers}
+            className="ml-auto text-blue-600 hover:text-blue-800"
+          >
+            Thử lại
+          </button>
         </div>
       )}
 
@@ -208,7 +344,8 @@ export default function AccountManagement() {
                         colSpan="6"
                         className="text-center py-8 text-gray-500"
                       >
-                        Không tìm thấy tài khoản nào.
+                        <Users className="inline-block mb-2" size={32} />
+                        <p>Không tìm thấy tài khoản nào.</p>
                       </td>
                     </tr>
                   ) : (
@@ -218,7 +355,7 @@ export default function AccountManagement() {
                           #{user.id}
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-900">
-                          {user.name || user.fullName}
+                          {user.name || user.fullName || "Chưa cập nhật"}
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-600">
                           {user.email}
@@ -226,14 +363,19 @@ export default function AccountManagement() {
                         <td className="px-6 py-4">
                           <span
                             className={`px-3 py-1 rounded-full text-xs font-medium ${
-                              user.role === "Giảng viên"
+                              Array.isArray(user.roles) &&
+                              user.roles[0]?.name === "Mentor"
                                 ? "bg-purple-100 text-purple-800"
-                                : user.role === "Sinh viên"
+                                : Array.isArray(user.roles) &&
+                                  user.roles[0]?.name === "User"
                                 ? "bg-green-100 text-green-800"
+                                : Array.isArray(user.roles) &&
+                                  user.roles[0]?.name === "Finance"
+                                ? "bg-yellow-100 text-yellow-800"
                                 : "bg-blue-100 text-blue-800"
                             }`}
                           >
-                            {user.role}
+                            {formatRoleDisplay(user)}
                           </span>
                         </td>
                         <td className="px-6 py-4">
@@ -250,15 +392,42 @@ export default function AccountManagement() {
                           </span>
                         </td>
                         <td className="px-6 py-4 text-sm">
-                          <div className="flex gap-3">
-                            <button className="text-blue-600 hover:text-blue-800">
-                              <Edit size={18} />
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleViewUser(user)}
+                              className="p-1.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded"
+                              title="Xem chi tiết"
+                            >
+                              <Eye size={16} />
+                            </button>
+                            <button
+                              onClick={() => handleEditUser(user)}
+                              className="p-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded"
+                              title="Chỉnh sửa"
+                            >
+                              <Edit size={16} />
+                            </button>
+                            <button
+                              onClick={() => handleToggleStatus(user)}
+                              className="p-1.5 text-orange-600 hover:text-orange-800 hover:bg-orange-50 rounded"
+                              title={
+                                user.status === "Active"
+                                  ? "Khóa tài khoản"
+                                  : "Kích hoạt"
+                              }
+                            >
+                              {user.status === "Active" || user.isActive ? (
+                                <Lock size={16} />
+                              ) : (
+                                <Unlock size={16} />
+                              )}
                             </button>
                             <button
                               onClick={() => handleDelete(user.id)}
-                              className="text-red-600 hover:text-red-800"
+                              className="p-1.5 text-red-600 hover:text-red-800 hover:bg-red-50 rounded"
+                              title="Xóa tài khoản"
                             >
-                              <Trash2 size={18} />
+                              <Trash2 size={16} />
                             </button>
                           </div>
                         </td>
@@ -276,17 +445,17 @@ export default function AccountManagement() {
               <button
                 onClick={() => setPageIndex((p) => Math.max(1, p - 1))}
                 disabled={pageIndex === 1}
-                className="px-4 py-2 border rounded-lg disabled:opacity-50"
+                className="px-4 py-2 border rounded-lg disabled:opacity-50 hover:bg-gray-50"
               >
                 Trước
               </button>
-              <span className="px-4">
+              <span className="px-4 text-sm">
                 Trang {pageIndex} / {totalPages}
               </span>
               <button
                 onClick={() => setPageIndex((p) => Math.min(totalPages, p + 1))}
                 disabled={pageIndex === totalPages}
-                className="px-4 py-2 border rounded-lg disabled:opacity-50"
+                className="px-4 py-2 border rounded-lg disabled:opacity-50 hover:bg-gray-50"
               >
                 Sau
               </button>
@@ -315,7 +484,15 @@ export default function AccountManagement() {
               <div>
                 <p className="text-sm text-gray-500">Giảng viên</p>
                 <p className="text-2xl font-bold">
-                  {users.filter((u) => u.role === "Giảng viên").length}
+                  {
+                    users.filter(
+                      (u) =>
+                        (Array.isArray(u.roles) &&
+                          u.roles[0]?.name === "Mentor") ||
+                        u.role === "Mentor" ||
+                        u.role === "Giảng viên"
+                    ).length
+                  }
                 </p>
               </div>
               <div className="bg-purple-100 p-3 rounded-lg">
@@ -327,13 +504,21 @@ export default function AccountManagement() {
           <div className="bg-white rounded-xl shadow-lg p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Sinh viên</p>
+                <p className="text-sm text-gray-500">Nhân viên tài chính</p>
                 <p className="text-2xl font-bold">
-                  {users.filter((u) => u.role === "Sinh viên").length}
+                  {
+                    users.filter(
+                      (u) =>
+                        (Array.isArray(u.roles) &&
+                          u.roles[0]?.name === "Finance") ||
+                        u.role === "Finance" ||
+                        u.role === "Nhân viên tài chính"
+                    ).length
+                  }
                 </p>
               </div>
-              <div className="bg-green-100 p-3 rounded-lg">
-                <GraduationCap className="text-green-600" size={28} />
+              <div className="bg-yellow-100 p-3 rounded-lg">
+                <Users className="text-yellow-600" size={28} />
               </div>
             </div>
           </div>
@@ -341,17 +526,47 @@ export default function AccountManagement() {
           <div className="bg-white rounded-xl shadow-lg p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Quản trị viên</p>
+                <p className="text-sm text-gray-500">Đang hoạt động</p>
                 <p className="text-2xl font-bold">
-                  {users.filter((u) => u.role === "Quản trị viên").length}
+                  {
+                    users.filter((u) => u.status === "Active" || u.isActive)
+                      .length
+                  }
                 </p>
               </div>
-              <div className="bg-orange-100 p-3 rounded-lg">
-                <UserCog className="text-orange-600" size={28} />
+              <div className="bg-green-100 p-3 rounded-lg">
+                <UserCog className="text-green-600" size={28} />
               </div>
             </div>
           </div>
         </div>
+      )}
+
+      {/* Modals */}
+      {showCreateModal && (
+        <CreateAccountModal
+          isOpen={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
+          onSuccess={handleCreateSuccess}
+          roleOptions={roleOptions}
+        />
+      )}
+
+      {showViewModal && selectedUser && (
+        <ViewAccountModal
+          isOpen={showViewModal}
+          onClose={() => setShowViewModal(false)}
+          user={selectedUser}
+        />
+      )}
+
+      {showEditModal && selectedUser && (
+        <EditAccountModal
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          onSuccess={handleEditSuccess}
+          user={selectedUser}
+        />
       )}
     </motion.div>
   );
