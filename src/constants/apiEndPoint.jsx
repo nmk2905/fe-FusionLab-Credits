@@ -4,6 +4,8 @@ export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
 export const API_ENDPOINTS_AUTH = {
   LOGIN: "/api/Auth/login",
   REGISTER: "/api/Auth/register",
+  REGISTER_MENTOR: "/api/Auth/register-mentor",
+  REGISTER_FINANCE: "/api/Auth/register-finance",
 };
 
 // Các endpoint cho user

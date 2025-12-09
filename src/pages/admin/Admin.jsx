@@ -2,7 +2,7 @@ import React from "react";
 import { Routes, Route } from "react-router-dom";
 import AdminLayout from "../../components/layout/AdminLayout";
 import Dashboard from "./components/Dashboard";
-import AccountManagement from "./components/AccountManagement";
+import AccountManagement from "./components/AccountManagement/AccountManagement";
 import CreateProject from "./components/CreateProject";
 import CreateSemester from "./components/CreateSemester";
 

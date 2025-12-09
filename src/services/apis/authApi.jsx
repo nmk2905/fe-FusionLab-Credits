@@ -9,6 +9,14 @@ const authService = {
   async register(registerData) {
     return apiUtils.post(API_ENDPOINTS_AUTH.REGISTER, registerData);
   },
+
+  async registerMentor(registerData) {
+    return apiUtils.post(API_ENDPOINTS_AUTH.REGISTER_MENTOR, registerData);
+  },
+
+  async registerFinance(registerData) {
+    return apiUtils.post(API_ENDPOINTS_AUTH.REGISTER_FINANCE, registerData);
+  },
 };
 
 export default authService;
