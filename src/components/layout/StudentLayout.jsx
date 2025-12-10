@@ -1,12 +1,12 @@
 import React from "react";
 import { motion } from "framer-motion";
-import AdminSidebar from "../Sidabar/AdminSidebar";
+import StudentSidebar from "../../components/Sidabar/StudentSidebar";
 
 const StudentLayout = ({ children }) => {
   return (
-    <div className="min-h-screen flex">
+<div className="min-h-screen flex overflow-x-hidden">
       {/* Sidebar cố định bên trái */}
-      <AdminSidebar />
+      <StudentSidebar />
 
       {/* Phần nội dung chính */}
       <div className="flex-1 flex flex-col">
