@@ -12,28 +12,28 @@ import {
 export default function Dashboard() {
   const stats = [
     {
-      title: "Tổng số Account",
+      title: "Total Accounts",
       value: "1,234",
       icon: <Users size={24} />,
       color: "bg-blue-500",
       change: "+12%",
     },
     {
-      title: "Project đang mở",
+      title: "Active Projects",
       value: "24",
       icon: <FolderPlus size={24} />,
       color: "bg-green-500",
       change: "+3",
     },
     {
-      title: "Học kỳ hiện tại",
-      value: "HK1 2024",
+      title: "Current Semester",
+      value: "Semester 1 2024",
       icon: <Calendar size={24} />,
       color: "bg-purple-500",
-      change: "Đang diễn ra",
+      change: "In Progress",
     },
     {
-      title: "Đăng ký Project",
+      title: "Project Registrations",
       value: "156",
       icon: <TrendingUp size={24} />,
       color: "bg-orange-500",
@@ -44,26 +44,26 @@ export default function Dashboard() {
   const recentActivities = [
     {
       user: "Nguyễn Văn A",
-      action: "đã tạo project mới",
-      time: "2 giờ trước",
+      action: "created a new project",
+      time: "2 hours ago",
       type: "project",
     },
     {
       user: "Trần Thị B",
-      action: "đăng ký project Web Development",
-      time: "4 giờ trước",
+      action: "registered for Web Development project",
+      time: "4 hours ago",
       type: "registration",
     },
     {
       user: "Lê Văn C",
-      action: "cập nhật thông tin tài khoản",
-      time: "6 giờ trước",
+      action: "updated account information",
+      time: "6 hours ago",
       type: "account",
     },
     {
       user: "Phạm Thị D",
-      action: "tạo học kỳ mới 2024-2025",
-      time: "1 ngày trước",
+      action: "created new semester 2024-2025",
+      time: "1 day ago",
       type: "semester",
     },
   ];
@@ -72,10 +72,18 @@ export default function Dashboard() {
     {
       project: "Web Development",
       deadline: "2024-01-15",
-      status: "sắp đến hạn",
+      status: "approaching",
     },
-    { project: "Mobile App", deadline: "2024-01-20", status: "còn 5 ngày" },
-    { project: "AI Research", deadline: "2024-01-25", status: "còn 10 ngày" },
+    {
+      project: "Mobile App",
+      deadline: "2024-01-20",
+      status: "5 days left",
+    },
+    {
+      project: "AI Research",
+      deadline: "2024-01-25",
+      status: "10 days left",
+    },
   ];
 
   return (
@@ -86,7 +94,7 @@ export default function Dashboard() {
     >
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
-        <p className="text-gray-600">Chào mừng trở lại, Quản trị viên!</p>
+        <p className="text-gray-600">Welcome back, Administrator!</p>
       </div>
 
       {/* Stats Cards */}
@@ -126,7 +134,7 @@ export default function Dashboard() {
         <div className="bg-white rounded-xl shadow-lg p-6">
           <h2 className="text-xl font-bold mb-4 flex items-center">
             <Clock className="mr-2" size={20} />
-            Hoạt động gần đây
+            Recent Activities
           </h2>
           <div className="space-y-4">
             {recentActivities.map((activity, index) => (
@@ -183,10 +191,10 @@ export default function Dashboard() {
                   {activity.type === "project"
                     ? "Project"
                     : activity.type === "registration"
-                    ? "Đăng ký"
+                    ? "Registration"
                     : activity.type === "account"
                     ? "Account"
-                    : "Học kỳ"}
+                    : "Semester"}
                 </div>
               </motion.div>
             ))}
@@ -197,7 +205,7 @@ export default function Dashboard() {
         <div className="bg-white rounded-xl shadow-lg p-6">
           <h2 className="text-xl font-bold mb-4 flex items-center">
             <CheckCircle className="mr-2" size={20} />
-            Deadline sắp tới
+            Upcoming Deadlines
           </h2>
           <div className="space-y-4">
             {upcomingDeadlines.map((deadline, index) => (
@@ -219,7 +227,7 @@ export default function Dashboard() {
                 <div className="text-right">
                   <span
                     className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      deadline.status.includes("sắp đến hạn")
+                      deadline.status.includes("approaching")
                         ? "bg-red-100 text-red-800"
                         : "bg-yellow-100 text-yellow-800"
                     }`}
@@ -233,31 +241,31 @@ export default function Dashboard() {
 
           {/* Quick Actions */}
           <div className="mt-8 pt-6 border-t border-gray-200">
-            <h3 className="font-medium text-gray-700 mb-4">Thao tác nhanh</h3>
+            <h3 className="font-medium text-gray-700 mb-4">Quick Actions</h3>
             <div className="grid grid-cols-2 gap-3">
               <a
                 href="/admin/accounts"
                 className="text-center px-4 py-3 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors font-medium"
               >
-                Quản lý Account
+                Manage Accounts
               </a>
               <a
                 href="/admin/create-project"
                 className="text-center px-4 py-3 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors font-medium"
               >
-                Tạo Project
+                Create Project
               </a>
               <a
                 href="/admin/create-semester"
                 className="text-center px-4 py-3 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors font-medium"
               >
-                Tạo Học kỳ
+                Create Semester
               </a>
               <a
                 href="/admin/dashboard"
                 className="text-center px-4 py-3 bg-orange-50 text-orange-700 rounded-lg hover:bg-orange-100 transition-colors font-medium"
               >
-                Xem thống kê
+                View Statistics
               </a>
             </div>
           </div>

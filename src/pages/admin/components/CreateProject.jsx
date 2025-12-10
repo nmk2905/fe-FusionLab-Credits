@@ -1,30 +1,147 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Save, Upload, Calendar, Users, BookOpen } from "lucide-react";
+import {
+  Save,
+  Upload,
+  Calendar,
+  Users,
+  BookOpen,
+  UserPlus,
+  Target,
+  UserCheck,
+} from "lucide-react";
+import projectService from "../../../services/apis/projectApi";
+import semesterService from "../../../services/apis/semesterApi";
+import userService from "../../../services/apis/userApi";
+import { useNotification } from "../../../hook/useNotification";
 
 export default function CreateProject() {
   const [projectData, setProjectData] = useState({
-    name: "",
+    title: "",
     description: "",
-    semester: "",
-    instructor: "",
-    maxStudents: 1,
-    deadline: "",
-    requirements: "",
+    totalPoints: 0,
+    semesterId: 0,
+    proposerId: 9, // Assuming this comes from logged in user
+    mentorId: 0,
+    minMembers: 50,
+    maxMembers: 50,
   });
 
-  const handleSubmit = (e) => {
+  const [semesters, setSemesters] = useState([]);
+  const [mentors, setMentors] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+  const { showNotification } = useNotification();
+
+  // Fetch current semester and mentors on component mount
+  useEffect(() => {
+    fetchCurrentSemester();
+    fetchMentors();
+  }, []);
+
+  const fetchCurrentSemester = async () => {
+    try {
+      const response = await semesterService.getCurrentSemester();
+      console.log("Current semester response:", response);
+      if (response.data) {
+        setSemesters(response?.rawResponse?.data);
+        setProjectData((prev) => ({
+          ...prev,
+          semesterId: response?.rawResponse?.data?.id,
+        }));
+      }
+    } catch (error) {
+      console.error("Error fetching current semester:", error);
+    }
+  };
+
+  const fetchMentors = async () => {
+    try {
+      const params = {
+        role: "Mentor",
+        pageIndex: 1,
+        pageSize: 1000,
+        sortDir: "desc",
+      };
+      const response = await userService.getUsers(params);
+      console.log("Mentors response:", response);
+      if (
+        response?.rawResponse?.data &&
+        response?.rawResponse?.data?.contends
+      ) {
+        setMentors(response?.rawResponse?.data?.contends);
+      }
+    } catch (error) {
+      console.error("Error fetching mentors:", error);
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Project created:", projectData);
-    // Xử lý tạo project
-    alert("Project đã được tạo thành công!");
+    setLoading(true);
+    setErrors({});
+
+    // Basic validation
+    const newErrors = {};
+    if (!projectData.title.trim()) newErrors.title = "Title is required";
+    if (!projectData.description.trim())
+      newErrors.description = "Description is required";
+    if (projectData.semesterId === 0)
+      newErrors.semesterId = "Please select a semester";
+    if (projectData.mentorId === 0)
+      newErrors.mentorId = "Please select a mentor";
+    if (projectData.minMembers > projectData.maxMembers)
+      newErrors.memberRange = "Min members cannot exceed max members";
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await projectService.addProject(projectData);
+      console.log("Project created successfully:", response);
+      showNotification("Project created successfully!", "success");
+
+      // Reset form
+      setProjectData({
+        title: "",
+        description: "",
+        totalPoints: 0,
+        semesterId: semesters[0]?.id || 0,
+        proposerId: 9,
+        mentorId: 0,
+        minMembers: 50,
+        maxMembers: 50,
+      });
+    } catch (error) {
+      console.error("Error creating project:", error);
+      alert("Failed to create project. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type } = e.target;
     setProjectData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: type === "number" ? parseInt(value) || 0 : value,
+    }));
+
+    // Clear error for this field
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: undefined }));
+    }
+  };
+
+  const handleNumberChange = (e) => {
+    const { name, value } = e.target;
+    const numValue = parseInt(value) || 0;
+    setProjectData((prev) => ({
+      ...prev,
+      [name]: numValue,
     }));
   };
 
@@ -35,214 +152,338 @@ export default function CreateProject() {
       transition={{ duration: 0.5 }}
     >
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">Tạo Project mới</h1>
-        <p className="text-gray-600">Tạo project cho sinh viên đăng ký</p>
+        <h1 className="text-3xl font-bold text-gray-800">Create New Project</h1>
+        <p className="text-gray-600">
+          Create a project for student registration
+        </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Left Column */}
           <div className="space-y-6">
-            {/* Project Name */}
+            {/* Project Information */}
             <div className="bg-white rounded-xl shadow-lg p-6">
               <h2 className="text-lg font-semibold mb-4 flex items-center">
                 <BookOpen className="mr-2" size={20} />
-                Thông tin Project
+                Project Information
               </h2>
 
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Tên Project *
+                    Project Title *
                   </label>
                   <input
                     type="text"
-                    name="name"
-                    value={projectData.name}
+                    name="title"
+                    value={projectData.title}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Nhập tên project"
+                    className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      errors.title ? "border-red-500" : "border-gray-300"
+                    }`}
+                    placeholder="Enter project title"
                     required
                   />
+                  {errors.title && (
+                    <p className="mt-1 text-sm text-red-600">{errors.title}</p>
+                  )}
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Mô tả Project
+                    Description *
                   </label>
                   <textarea
                     name="description"
                     value={projectData.description}
                     onChange={handleChange}
                     rows={4}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Mô tả chi tiết về project..."
+                    className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      errors.description ? "border-red-500" : "border-gray-300"
+                    }`}
+                    placeholder="Detailed project description..."
                   />
+                  {errors.description && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.description}
+                    </p>
+                  )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Yêu cầu
+                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                    <Target className="mr-2" size={16} />
+                    Total Points
                   </label>
-                  <textarea
-                    name="requirements"
-                    value={projectData.requirements}
-                    onChange={handleChange}
-                    rows={3}
+                  <input
+                    type="number"
+                    name="totalPoints"
+                    value={projectData.totalPoints}
+                    onChange={handleNumberChange}
+                    min="0"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Các yêu cầu cần thiết..."
+                    placeholder="0"
                   />
                 </div>
               </div>
             </div>
 
-            {/* File Upload */}
+            {/* Team Configuration */}
             <div className="bg-white rounded-xl shadow-lg p-6">
               <h2 className="text-lg font-semibold mb-4 flex items-center">
-                <Upload className="mr-2" size={20} />
-                Tài liệu đính kèm
+                <Users className="mr-2" size={20} />
+                Team Configuration
               </h2>
 
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
-                <Upload className="mx-auto text-gray-400 mb-4" size={40} />
-                <p className="text-gray-600 mb-2">
-                  Kéo thả file hoặc click để upload
-                </p>
-                <p className="text-sm text-gray-500">
-                  PDF, DOC, PPT (Tối đa 10MB)
-                </p>
-                <input
-                  type="file"
-                  className="hidden"
-                  id="file-upload"
-                  multiple
-                />
-                <label
-                  htmlFor="file-upload"
-                  className="inline-block mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer transition-colors"
-                >
-                  Chọn file
-                </label>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                    <UserCheck className="mr-2" size={16} />
+                    Minimum Members
+                  </label>
+                  <input
+                    type="range"
+                    name="minMembers"
+                    min="1"
+                    max="100"
+                    value={projectData.minMembers}
+                    onChange={handleChange}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between items-center mt-2">
+                    <span className="text-sm text-gray-500">1</span>
+                    <span className="text-lg font-semibold">
+                      {projectData.minMembers}
+                    </span>
+                    <span className="text-sm text-gray-500">100</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                    <UserPlus className="mr-2" size={16} />
+                    Maximum Members
+                  </label>
+                  <input
+                    type="range"
+                    name="maxMembers"
+                    min="1"
+                    max="100"
+                    value={projectData.maxMembers}
+                    onChange={handleChange}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between items-center mt-2">
+                    <span className="text-sm text-gray-500">1</span>
+                    <span className="text-lg font-semibold">
+                      {projectData.maxMembers}
+                    </span>
+                    <span className="text-sm text-gray-500">100</span>
+                  </div>
+                </div>
+
+                {errors.memberRange && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.memberRange}
+                  </p>
+                )}
+
+                <div className="p-3 bg-blue-50 rounded-lg">
+                  <p className="text-sm font-medium text-blue-800">
+                    Team Size: {projectData.minMembers} -{" "}
+                    {projectData.maxMembers} members
+                  </p>
+                </div>
               </div>
             </div>
           </div>
 
           {/* Right Column */}
           <div className="space-y-6">
-            {/* Settings */}
+            {/* Semester & Mentor Selection */}
             <div className="bg-white rounded-xl shadow-lg p-6">
               <h2 className="text-lg font-semibold mb-4 flex items-center">
                 <Calendar className="mr-2" size={20} />
-                Thời gian & Cài đặt
+                Semester & Mentor
               </h2>
 
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Học kỳ *
+                    Semester *
                   </label>
                   <select
-                    name="semester"
-                    value={projectData.semester}
+                    name="semesterId"
+                    value={projectData.semesterId}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      errors.semesterId ? "border-red-500" : "border-gray-300"
+                    }`}
                     required
+                    disabled={semesters.length === 0}
                   >
-                    <option value="">Chọn học kỳ</option>
-                    <option value="2023-1">Học kỳ 1 (2023-2024)</option>
-                    <option value="2023-2">Học kỳ 2 (2023-2024)</option>
-                    <option value="2024-1">Học kỳ 1 (2024-2025)</option>
+                    <option value="0">Select semester</option>
+                    {semesters.map((semester) => (
+                      <option key={semester.id} value={semester.id}>
+                        {semester.name || `Semester ${semester.id}`}
+                      </option>
+                    ))}
                   </select>
+                  {semesters.length === 0 ? (
+                    <p className="mt-1 text-sm text-gray-500">
+                      Loading current semester...
+                    </p>
+                  ) : errors.semesterId ? (
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.semesterId}
+                    </p>
+                  ) : null}
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Giảng viên hướng dẫn *
+                    Mentor *
                   </label>
                   <select
-                    name="instructor"
-                    value={projectData.instructor}
+                    name="mentorId"
+                    value={projectData.mentorId}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      errors.mentorId ? "border-red-500" : "border-gray-300"
+                    }`}
                     required
+                    disabled={mentors.length === 0}
                   >
-                    <option value="">Chọn giảng viên</option>
-                    <option value="gv1">TS. Nguyễn Văn A</option>
-                    <option value="gv2">ThS. Trần Thị B</option>
-                    <option value="gv3">PGS.TS. Lê Văn C</option>
+                    <option value="0">Select a mentor</option>
+                    {mentors.map((mentor) => (
+                      <option key={mentor.id} value={mentor.id}>
+                        {mentor.fullName ||
+                          mentor.name ||
+                          `Mentor ${mentor.id}`}
+                      </option>
+                    ))}
                   </select>
+                  {mentors.length === 0 ? (
+                    <p className="mt-1 text-sm text-gray-500">
+                      Loading mentors...
+                    </p>
+                  ) : errors.mentorId ? (
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.mentorId}
+                    </p>
+                  ) : null}
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Số sinh viên tối đa *
-                  </label>
-                  <div className="flex items-center space-x-4">
-                    <input
-                      type="range"
-                      name="maxStudents"
-                      min="1"
-                      max="10"
-                      value={projectData.maxStudents}
-                      onChange={handleChange}
-                      className="flex-1"
-                    />
-                    <span className="text-lg font-semibold">
-                      {projectData.maxStudents}
-                    </span>
+                {/* Additional Information */}
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <h3 className="text-md font-medium text-gray-700 mb-3">
+                    Project Details
+                  </h3>
+                  <div className="space-y-3 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Semester ID:</span>
+                      <span className="font-medium">
+                        {projectData.semesterId || "Not selected"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Proposer ID:</span>
+                      <span className="font-medium">
+                        {projectData.proposerId}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Mentor ID:</span>
+                      <span className="font-medium">
+                        {projectData.mentorId || "Not selected"}
+                      </span>
+                    </div>
                   </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Deadline đăng ký *
-                  </label>
-                  <input
-                    type="date"
-                    name="deadline"
-                    value={projectData.deadline}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  />
                 </div>
               </div>
             </div>
 
-            {/* Submit Button */}
+            {/* Submit Section */}
             <div className="bg-white rounded-xl shadow-lg p-6">
               <h2 className="text-lg font-semibold mb-4 flex items-center">
                 <Save className="mr-2" size={20} />
-                Hoàn tất
+                Complete
               </h2>
 
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
-                  <div>
-                    <p className="font-medium">Tóm tắt</p>
-                    <p className="text-sm text-gray-600">
-                      Kiểm tra lại thông tin trước khi tạo
-                    </p>
+                {/* <div className="p-4 bg-blue-50 rounded-lg">
+                  <p className="font-medium text-blue-800 mb-2">
+                    Data Structure Preview
+                  </p>
+                  <pre className="text-xs bg-white p-3 rounded border border-blue-100 overflow-auto">
+                    {JSON.stringify(projectData, null, 2)}
+                  </pre>
+                </div> */}
+
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="font-medium">Summary</p>
+                    <div className="text-right">
+                      <p className="text-sm text-gray-600">Ready to create</p>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-medium text-blue-600">Sẵn sàng tạo</p>
+                  <div className="text-sm text-gray-600">
+                    <p>• Title: {projectData.title || "Not set"}</p>
+                    {/* <p>
+                      • Mentor:{" "}
+                      {mentors.find((m) => m.id === projectData.mentorId)
+                        ?.fullName || "Not selected"}
+                    </p> */}
+                    <p>
+                      • Team Size: {projectData.minMembers} -{" "}
+                      {projectData.maxMembers}
+                    </p>
                   </div>
                 </div>
 
                 <div className="flex space-x-4">
                   <button
                     type="submit"
-                    className="flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
+                    disabled={loading}
+                    className={`flex-1 py-3 rounded-lg transition-colors flex items-center justify-center space-x-2 ${
+                      loading
+                        ? "bg-blue-400 cursor-not-allowed"
+                        : "bg-blue-600 hover:bg-blue-700"
+                    } text-white`}
                   >
-                    <Save size={20} />
-                    <span>Tạo Project</span>
+                    {loading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                        <span>Creating...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Save size={20} />
+                        <span>Create Project</span>
+                      </>
+                    )}
                   </button>
 
                   <button
                     type="button"
+                    onClick={() => {
+                      // Reset form
+                      setProjectData({
+                        title: "",
+                        description: "",
+                        totalPoints: 0,
+                        semesterId: semesters[0]?.id || 0,
+                        proposerId: 1,
+                        mentorId: 0,
+                        minMembers: 50,
+                        maxMembers: 50,
+                      });
+                      setErrors({});
+                    }}
                     className="flex-1 border border-gray-300 py-3 rounded-lg hover:bg-gray-50 transition-colors"
                   >
-                    Lưu nháp
+                    Reset Form
                   </button>
                 </div>
               </div>

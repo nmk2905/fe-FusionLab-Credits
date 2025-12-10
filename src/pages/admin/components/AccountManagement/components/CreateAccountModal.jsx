@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { X, UserPlus } from "lucide-react";
 import authService from "../../../../../services/apis/authApi";
+import { useNotification } from "../../../../../hook/useNotification";
 
 export default function CreateAccountModal({
   isOpen,
@@ -17,28 +18,29 @@ export default function CreateAccountModal({
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const { showNotification } = useNotification();
 
   const validateForm = () => {
     const newErrors = {};
 
     if (!formData.fullName.trim()) {
-      newErrors.fullName = "Vui lòng nhập họ tên";
+      newErrors.fullName = "Please enter full name";
     }
 
     if (!formData.email.trim()) {
-      newErrors.email = "Vui lòng nhập email";
+      newErrors.email = "Please enter email";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Email không hợp lệ";
+      newErrors.email = "Invalid email format";
     }
 
     if (!formData.password) {
-      newErrors.password = "Vui lòng nhập mật khẩu";
+      newErrors.password = "Please enter password";
     } else if (formData.password.length < 6) {
-      newErrors.password = "Mật khẩu phải có ít nhất 6 ký tự";
+      newErrors.password = "Password must be at least 6 characters";
     }
 
     if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Mật khẩu không khớp";
+      newErrors.confirmPassword = "Passwords do not match";
     }
 
     setErrors(newErrors);
@@ -52,7 +54,7 @@ export default function CreateAccountModal({
 
     setLoading(true);
     try {
-      // Tạo payload chung
+      // Create common payload
       const payload = {
         fullName: formData.fullName,
         username: formData.email,
@@ -61,7 +63,7 @@ export default function CreateAccountModal({
 
       let response;
 
-      // Gọi API khác nhau dựa trên role
+      // Call different API based on role
       switch (formData.role) {
         case "Mentor":
           response = await authService.registerMentor(payload);
@@ -70,14 +72,14 @@ export default function CreateAccountModal({
           response = await authService.registerFinance(payload);
           break;
         default:
-          // Có thể thêm các role khác nếu cần
-          throw new Error("Vai trò không hợp lệ");
+          // Can add other roles if needed
+          throw new Error("Invalid role");
       }
 
       onSuccess(response.data);
       onClose();
 
-      // Reset form sau khi tạo thành công
+      // Reset form after successful creation
       setFormData({
         fullName: "",
         email: "",
@@ -86,13 +88,15 @@ export default function CreateAccountModal({
         confirmPassword: "",
       });
       setErrors({});
+
+      showNotification("Account created successfully!", "success");
     } catch (err) {
-      console.error("Lỗi khi tạo tài khoản:", err);
+      console.error("Error creating account:", err);
       setErrors({
         submit:
           err.response?.data?.message ||
           err.message ||
-          "Tạo tài khoản thất bại",
+          "Failed to create account",
       });
     } finally {
       setLoading(false);
@@ -119,7 +123,7 @@ export default function CreateAccountModal({
         <div className="flex items-center justify-between p-6 border-b">
           <div className="flex items-center gap-3">
             <UserPlus className="text-blue-600" size={24} />
-            <h2 className="text-xl font-bold">Tạo tài khoản mới</h2>
+            <h2 className="text-xl font-bold">Create new account</h2>
           </div>
           <button
             onClick={onClose}
@@ -132,7 +136,7 @@ export default function CreateAccountModal({
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Họ tên *
+              Full name *
             </label>
             <input
               type="text"
@@ -140,7 +144,7 @@ export default function CreateAccountModal({
               value={formData.fullName}
               onChange={handleChange}
               className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Nguyễn Văn A"
+              placeholder="Nguyen Van A"
             />
             {errors.fullName && (
               <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>
@@ -166,7 +170,7 @@ export default function CreateAccountModal({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Vai trò *
+              Role *
             </label>
             <select
               name="role"
@@ -184,7 +188,7 @@ export default function CreateAccountModal({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Mật khẩu *
+              Password *
             </label>
             <input
               type="password"
@@ -192,7 +196,7 @@ export default function CreateAccountModal({
               value={formData.password}
               onChange={handleChange}
               className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Ít nhất 6 ký tự"
+              placeholder="At least 6 characters"
             />
             {errors.password && (
               <p className="text-red-500 text-sm mt-1">{errors.password}</p>
@@ -201,7 +205,7 @@ export default function CreateAccountModal({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Xác nhận mật khẩu *
+              Confirm password *
             </label>
             <input
               type="password"
@@ -209,7 +213,7 @@ export default function CreateAccountModal({
               value={formData.confirmPassword}
               onChange={handleChange}
               className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Nhập lại mật khẩu"
+              placeholder="Re-enter your password"
             />
             {errors.confirmPassword && (
               <p className="text-red-500 text-sm mt-1">
@@ -231,14 +235,14 @@ export default function CreateAccountModal({
               className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
               disabled={loading}
             >
-              Hủy
+              Cancel
             </button>
             <button
               type="submit"
               className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
               disabled={loading}
             >
-              {loading ? "Đang tạo..." : "Tạo tài khoản"}
+              {loading ? "Creating..." : "Create Account"}
             </button>
           </div>
         </form>

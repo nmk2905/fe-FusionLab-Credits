@@ -1,4 +1,5 @@
 import { performApiRequest } from "../../utils/apiUtils";
+import { apiUtils } from "../../utils/apiUtils";
 import { API_ENDPOINTS_USER } from "../../constants/apiEndPoint";
 
 const userService = {
@@ -16,9 +17,7 @@ const userService = {
   },
 
   async getCurrentUser(userId) {
-    return performApiRequest(API_ENDPOINTS_USER.GET_USER(userId), {
-      method: "get",
-    });
+    return apiUtils.get(API_ENDPOINTS_USER.GET_USER(userId));
   },
 };
 

@@ -23,7 +23,6 @@ export const AuthProvider = ({ children }) => {
 
       try {
         const tokenInfo = decodeToken(token);
-        console.log("Token info:", tokenInfo);
 
         if (!tokenInfo || tokenInfo.exp <= Date.now() / 1000) {
           console.log("Token invalid or expired");
@@ -39,7 +38,6 @@ export const AuthProvider = ({ children }) => {
         // Sửa API call: kiểm tra tokenInfo.userId
         if (tokenInfo.userId) {
           const response = await userService.getCurrentUser(tokenInfo.userId);
-          console.log("User API response:", response);
 
           if (response && response.success && response.data) {
             setUser(response.data);

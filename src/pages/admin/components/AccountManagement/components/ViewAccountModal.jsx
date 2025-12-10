@@ -13,15 +13,15 @@ export default function ViewAccountModal({ isOpen, onClose, user }) {
   if (!isOpen || !user) return null;
 
   const formatDate = (dateString) => {
-    if (!dateString) return "Chưa cập nhật";
-    return new Date(dateString).toLocaleDateString("vi-VN");
+    if (!dateString) return "Not updated";
+    return new Date(dateString).toLocaleDateString("en-US");
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
         <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-xl font-bold">Chi tiết tài khoản</h2>
+          <h2 className="text-xl font-bold">Account Details</h2>
           <button
             onClick={onClose}
             className="p-1 hover:bg-gray-100 rounded-lg"
@@ -53,13 +53,12 @@ export default function ViewAccountModal({ isOpen, onClose, user }) {
             </div>
 
             <div className="flex justify-between items-center">
-              <span className="text-gray-600">Vai trò:</span>
+              <span className="text-gray-600">Role:</span>
               <span
                 className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  user.role === "Mentor" || user.role === "Giảng viên"
+                  user.role === "Mentor"
                     ? "bg-purple-100 text-purple-800"
-                    : user.role === "Finance" ||
-                      user.role === "Nhân viên tài chính"
+                    : user.role === "Finance"
                     ? "bg-yellow-100 text-yellow-800"
                     : "bg-blue-100 text-blue-800"
                 }`}
@@ -69,7 +68,7 @@ export default function ViewAccountModal({ isOpen, onClose, user }) {
             </div>
 
             <div className="flex justify-between items-center">
-              <span className="text-gray-600">Trạng thái:</span>
+              <span className="text-gray-600">Status:</span>
               <div className="flex items-center gap-2">
                 {user.status === "Active" || user.isActive ? (
                   <CheckCircle size={16} className="text-green-500" />
@@ -84,27 +83,27 @@ export default function ViewAccountModal({ isOpen, onClose, user }) {
                   }
                 >
                   {user.status === "Active" || user.isActive
-                    ? "Hoạt động"
-                    : "Đã khóa"}
+                    ? "Active"
+                    : "Inactive"}
                 </span>
               </div>
             </div>
 
             <div className="flex justify-between items-center">
-              <span className="text-gray-600">Ngày tạo:</span>
+              <span className="text-gray-600">Created Date:</span>
               <span className="font-medium">{formatDate(user.createdAt)}</span>
             </div>
 
             {user.phone && (
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Số điện thoại:</span>
+                <span className="text-gray-600">Phone Number:</span>
                 <span className="font-medium">{user.phone}</span>
               </div>
             )}
 
             {user.department && (
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Phòng ban:</span>
+                <span className="text-gray-600">Department:</span>
                 <span className="font-medium">{user.department}</span>
               </div>
             )}
@@ -116,7 +115,7 @@ export default function ViewAccountModal({ isOpen, onClose, user }) {
             onClick={onClose}
             className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
           >
-            Đóng
+            Close
           </button>
         </div>
       </div>

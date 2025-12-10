@@ -46,10 +46,11 @@ export default function Login() {
     showNotification("Login successful", "success");
 
     const redirectPaths = {
-      Admin: "/admin",
+      Admin: "/admin/dashboard",
       Staff: "/staff",
       User: "/student",
       Mentor: "/mentor",
+      Finance: "/finance",
     };
 
     setTimeout(() => {
