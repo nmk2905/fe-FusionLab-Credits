@@ -48,7 +48,7 @@ export default function Login() {
     const redirectPaths = {
       Admin: "/admin",
       Staff: "/staff",
-      User: "/student",
+      User: "/student/dashboard",
       Mentor: "/mentor",
     };
 
