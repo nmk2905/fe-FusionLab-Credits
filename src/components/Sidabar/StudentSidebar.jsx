@@ -28,7 +28,6 @@ const StudentSidebar = () => {
     { to: "/student/group-management", label: "Group Management", icon: Group },
     { to: "/student/task-management", label: "Task Management", icon: Target },
     { to: "/student/point-exchange", label: "Point Exchange", icon: Sparkles },
-    // { to: "/student/account", label: "Account", icon: User },
   ];
 
   const handleLogout = () => {
