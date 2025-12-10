@@ -3,7 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import AdminLayout from "../../components/layout/AdminLayout";
 import Dashboard from "./components/Dashboard";
 import AccountManagement from "./components/AccountManagement/AccountManagement";
-import CreateProject from "./components/CreateProject";
+import ProjectManagement from "./components/ProjectManagement/ProjectManagement"; // Đã thay đổi
 import CreateSemester from "./components/CreateSemester";
 
 // Tạo một wrapper component cho mỗi trang
@@ -31,10 +31,10 @@ export default function Admin() {
         }
       />
       <Route
-        path="create-project"
+        path="project-management" // Đã thay đổi
         element={
           <AdminPageWrapper>
-            <CreateProject />
+            <ProjectManagement /> {/* Đã thay đổi */}
           </AdminPageWrapper>
         }
       />

@@ -1,5 +1,6 @@
+// src/components/Sidabar/AdminSidebar.jsx
 import React, { useContext, useState } from "react";
-import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Home,
@@ -14,7 +15,6 @@ import {
   Menu,
   X,
   UserCog,
-  FolderPlus,
   CalendarPlus,
 } from "lucide-react";
 import { AuthContext } from "../../contexts/AuthContext";
@@ -22,7 +22,6 @@ import { AuthContext } from "../../contexts/AuthContext";
 const AdminSidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const location = useLocation();
   const { logout } = useContext(AuthContext);
 
   const menuItems = [
@@ -37,9 +36,9 @@ const AdminSidebar = () => {
       path: "/admin/accounts",
     },
     {
-      title: "Create Project", // Tạo Project
-      icon: <FolderPlus size={20} />,
-      path: "/admin/create-project",
+      title: "Project Management", // Tạo Project
+      icon: <FolderKanban size={20} />,
+      path: "/admin/project-management",
     },
     {
       title: "Create Semester", // Tạo Học kỳ

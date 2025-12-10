@@ -10,10 +10,10 @@ import {
   Target,
   UserCheck,
 } from "lucide-react";
-import projectService from "../../../services/apis/projectApi";
-import semesterService from "../../../services/apis/semesterApi";
-import userService from "../../../services/apis/userApi";
-import { useNotification } from "../../../hook/useNotification";
+import projectService from "../../../../../services/apis/projectApi";
+import semesterService from "../../../../../services/apis/semesterApi";
+import userService from "../../../../../services/apis/userApi";
+import { useNotification } from "../../../../../hook/useNotification";
 
 export default function CreateProject() {
   const [projectData, setProjectData] = useState({
@@ -147,12 +147,13 @@ export default function CreateProject() {
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="p-6"
     >
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">Create New Project</h1>
+        <h2 className="text-2xl font-bold text-gray-800">Create New Project</h2>
         <p className="text-gray-600">
           Create a project for student registration
         </p>
@@ -163,7 +164,7 @@ export default function CreateProject() {
           {/* Left Column */}
           <div className="space-y-6">
             {/* Project Information */}
-            <div className="bg-white rounded-xl shadow-lg p-6">
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
               <h2 className="text-lg font-semibold mb-4 flex items-center">
                 <BookOpen className="mr-2" size={20} />
                 Project Information
@@ -230,7 +231,7 @@ export default function CreateProject() {
             </div>
 
             {/* Team Configuration */}
-            <div className="bg-white rounded-xl shadow-lg p-6">
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
               <h2 className="text-lg font-semibold mb-4 flex items-center">
                 <Users className="mr-2" size={20} />
                 Team Configuration
@@ -302,7 +303,7 @@ export default function CreateProject() {
           {/* Right Column */}
           <div className="space-y-6">
             {/* Semester & Mentor Selection */}
-            <div className="bg-white rounded-xl shadow-lg p-6">
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
               <h2 className="text-lg font-semibold mb-4 flex items-center">
                 <Calendar className="mr-2" size={20} />
                 Semester & Mentor
@@ -405,22 +406,13 @@ export default function CreateProject() {
             </div>
 
             {/* Submit Section */}
-            <div className="bg-white rounded-xl shadow-lg p-6">
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
               <h2 className="text-lg font-semibold mb-4 flex items-center">
                 <Save className="mr-2" size={20} />
                 Complete
               </h2>
 
               <div className="space-y-4">
-                {/* <div className="p-4 bg-blue-50 rounded-lg">
-                  <p className="font-medium text-blue-800 mb-2">
-                    Data Structure Preview
-                  </p>
-                  <pre className="text-xs bg-white p-3 rounded border border-blue-100 overflow-auto">
-                    {JSON.stringify(projectData, null, 2)}
-                  </pre>
-                </div> */}
-
                 <div className="p-4 bg-gray-50 rounded-lg">
                   <div className="flex items-center justify-between mb-2">
                     <p className="font-medium">Summary</p>
@@ -430,11 +422,6 @@ export default function CreateProject() {
                   </div>
                   <div className="text-sm text-gray-600">
                     <p>• Title: {projectData.title || "Not set"}</p>
-                    {/* <p>
-                      • Mentor:{" "}
-                      {mentors.find((m) => m.id === projectData.mentorId)
-                        ?.fullName || "Not selected"}
-                    </p> */}
                     <p>
                       • Team Size: {projectData.minMembers} -{" "}
                       {projectData.maxMembers}
