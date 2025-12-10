@@ -18,4 +18,10 @@ export const API_ENDPOINTS_USER = {
 
 export const API_ENDPOINTS_PROJECT = {
   GET_PROJECT_BY_ID: (projectId) => `/api/projects/${projectId}`,
+  ADD_PROJECT: "/api/projects",
 };
+
+export const API_ENDPOINTS_SEMESTER = {
+  GET_CURRENT_SEMESTER: (pageSize, pageIndex, keyword) => `/api/semesters?pageIndex=${pageIndex}&pageSize=${pageSize}&keyword=${keyword}`,
+  ADD_SEMESTER: "/api/semesters",
+}

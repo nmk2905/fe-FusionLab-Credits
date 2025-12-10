@@ -21,15 +21,15 @@ export default function EditAccountModal({ isOpen, onClose, onSuccess, user }) {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [changePassword, setChangePassword] = useState(false);
 
-  // Role options (chỉ mentor và finance có thể được chỉnh sửa từ admin)
+  // Role options (only mentor and finance can be edited by admin)
   const roleOptions = [
-    { value: "Mentor", label: "Giảng viên/Hướng dẫn" },
-    { value: "Finance", label: "Nhân viên tài chính" },
-    { value: "User", label: "Sinh viên" },
-    { value: "Staff", label: "Quản trị viên" },
+    { value: "Mentor", label: "Mentor/Instructor" },
+    { value: "Finance", label: "Finance Staff" },
+    { value: "User", label: "Student" },
+    { value: "Staff", label: "Administrator" },
   ];
 
-  // Khởi tạo form data từ user prop
+  // Initialize form data from user prop
   useEffect(() => {
     if (user) {
       setFormData({
@@ -48,24 +48,21 @@ export default function EditAccountModal({ isOpen, onClose, onSuccess, user }) {
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     if (!formData.fullName.trim()) {
-      newErrors.fullName = "Vui lòng nhập họ tên";
+      newErrors.fullName = "Please enter full name";
     }
-    
+
     if (!formData.email.trim()) {
-      newErrors.email = "Vui lòng nhập email";
+      newErrors.email = "Please enter email";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Email không hợp lệ";
+      newErrors.email = "Invalid email format";
     }
 
     if (changePassword) {
-      if (formData.newPassword && formData.newPassword.length < 6) {
-        newErrors.newPassword = "Mật khẩu mới phải có ít nhất 6 ký tự";
-      }
-      
+
       if (formData.newPassword !== formData.confirmNewPassword) {
-        newErrors.confirmNewPassword = "Mật khẩu không khớp";
+        newErrors.confirmNewPassword = "Passwords do not match";
       }
     }
 
@@ -75,35 +72,35 @@ export default function EditAccountModal({ isOpen, onClose, onSuccess, user }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
 
     setLoading(true);
     try {
-      // Chuẩn bị dữ liệu gửi lên server
+      // Prepare data to send to server
       const updateData = {
         fullName: formData.fullName,
         username: formData.email,
       };
 
-      // Nếu đổi mật khẩu
+      // If changing password
       if (changePassword && formData.newPassword) {
-        updateData.password = formData.password; // Mật khẩu cũ để xác thực
+        updateData.password = formData.password; // Current password for verification
         updateData.newPassword = formData.newPassword;
       }
 
-      // Gọi API cập nhật user
+      // Call update user API
       //const response = await userService.updateUser(user.id, updateData);
 
       onSuccess(response.data);
       onClose();
-      alert("Cập nhật tài khoản thành công!");
+      alert("Account updated successfully!");
     } catch (err) {
-      console.error("Lỗi khi cập nhật tài khoản:", err);
-      const errorMessage = err.response?.data?.message || "Cập nhật thất bại";
-      
+      console.error("Error updating account:", err);
+      const errorMessage = err.response?.data?.message || "Update failed";
+
       if (err.response?.status === 401) {
-        setErrors({ password: "Mật khẩu hiện tại không đúng" });
+        setErrors({ password: "Current password is incorrect" });
       } else {
         setErrors({ submit: errorMessage });
       }
@@ -114,41 +111,46 @@ export default function EditAccountModal({ isOpen, onClose, onSuccess, user }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
-    
+
     // Clear error when user types
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: "" }));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
   const togglePasswordVisibility = (field) => {
     switch (field) {
-      case 'password':
+      case "password":
         setShowPassword(!showPassword);
         break;
-      case 'newPassword':
+      case "newPassword":
         setShowNewPassword(!showNewPassword);
         break;
-      case 'confirm':
+      case "confirm":
         setShowConfirmPassword(!showConfirmPassword);
         break;
     }
   };
 
   const handleResetPassword = async () => {
-    if (!window.confirm("Bạn có chắc muốn reset mật khẩu về mặc định? User sẽ nhận được email với mật khẩu mới.")) return;
+    if (
+      !window.confirm(
+        "Are you sure you want to reset the password to default? User will receive an email with the new password."
+      )
+    )
+      return;
 
     try {
       setLoading(true);
       await userService.resetPassword(user.id);
-      alert("Đã gửi email reset mật khẩu thành công!");
+      alert("Password reset email sent successfully!");
     } catch (err) {
-      console.error("Lỗi khi reset mật khẩu:", err);
-      alert("Reset mật khẩu thất bại!");
+      console.error("Error resetting password:", err);
+      alert("Password reset failed!");
     } finally {
       setLoading(false);
     }
@@ -157,12 +159,12 @@ export default function EditAccountModal({ isOpen, onClose, onSuccess, user }) {
   if (!isOpen || !user) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b sticky top-0 bg-white z-10">
           <div className="flex items-center gap-3">
             <Save className="text-blue-600" size={24} />
-            <h2 className="text-xl font-bold">Chỉnh sửa tài khoản</h2>
+            <h2 className="text-xl font-bold">Edit Account</h2>
           </div>
           <button
             onClick={onClose}
@@ -174,13 +176,15 @@ export default function EditAccountModal({ isOpen, onClose, onSuccess, user }) {
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {/* Thông tin cơ bản */}
+          {/* Basic Information */}
           <div className="space-y-4">
-            <h3 className="font-semibold text-gray-700 border-b pb-2">Thông tin cơ bản</h3>
-            
+            <h3 className="font-semibold text-gray-700 border-b pb-2">
+              Basic Information
+            </h3>
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Họ tên *
+                Full Name *
               </label>
               <input
                 type="text"
@@ -215,7 +219,7 @@ export default function EditAccountModal({ isOpen, onClose, onSuccess, user }) {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Vai trò
+                  Role
                 </label>
                 <select
                   name="role"
@@ -224,7 +228,7 @@ export default function EditAccountModal({ isOpen, onClose, onSuccess, user }) {
                   className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   disabled={loading}
                 >
-                  {roleOptions.map(option => (
+                  {roleOptions.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
                     </option>
@@ -234,7 +238,7 @@ export default function EditAccountModal({ isOpen, onClose, onSuccess, user }) {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Trạng thái
+                  Status
                 </label>
                 <select
                   name="status"
@@ -243,15 +247,15 @@ export default function EditAccountModal({ isOpen, onClose, onSuccess, user }) {
                   className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   disabled={loading}
                 >
-                  <option value="Active">Hoạt động</option>
-                  <option value="Inactive">Đã khóa</option>
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
                 </select>
               </div>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Số điện thoại
+                Phone Number
               </label>
               <input
                 type="tel"
@@ -266,7 +270,7 @@ export default function EditAccountModal({ isOpen, onClose, onSuccess, user }) {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Phòng ban/Bộ môn
+                Department/Faculty
               </label>
               <input
                 type="text"
@@ -274,16 +278,18 @@ export default function EditAccountModal({ isOpen, onClose, onSuccess, user }) {
                 value={formData.department}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="VD: Khoa CNTT"
+                placeholder="e.g., IT Faculty"
                 disabled={loading}
               />
             </div>
           </div>
 
-          {/* Quản lý mật khẩu */}
+          {/* Password Management */}
           <div className="space-y-4 pt-4 border-t">
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-gray-700">Quản lý mật khẩu</h3>
+              <h3 className="font-semibold text-gray-700">
+                Password Management
+              </h3>
               <button
                 type="button"
                 onClick={handleResetPassword}
@@ -291,7 +297,7 @@ export default function EditAccountModal({ isOpen, onClose, onSuccess, user }) {
                 disabled={loading}
               >
                 <Key size={16} />
-                Reset mật khẩu
+                Reset Password
               </button>
             </div>
 
@@ -305,7 +311,7 @@ export default function EditAccountModal({ isOpen, onClose, onSuccess, user }) {
                 disabled={loading}
               />
               <label htmlFor="changePassword" className="text-sm text-gray-700">
-                Thay đổi mật khẩu
+                Change Password
               </label>
             </div>
 
@@ -313,7 +319,7 @@ export default function EditAccountModal({ isOpen, onClose, onSuccess, user }) {
               <div className="space-y-4 bg-gray-50 p-4 rounded-lg">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Mật khẩu hiện tại *
+                    Current Password *
                   </label>
                   <div className="relative">
                     <input
@@ -322,25 +328,27 @@ export default function EditAccountModal({ isOpen, onClose, onSuccess, user }) {
                       value={formData.password}
                       onChange={handleChange}
                       className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
-                      placeholder="Nhập mật khẩu hiện tại"
+                      placeholder="Enter current password"
                       disabled={loading}
                     />
                     <button
                       type="button"
-                      onClick={() => togglePasswordVisibility('password')}
+                      onClick={() => togglePasswordVisibility("password")}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
                     >
                       {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
                   </div>
                   {errors.password && (
-                    <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.password}
+                    </p>
                   )}
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Mật khẩu mới
+                    New Password
                   </label>
                   <div className="relative">
                     <input
@@ -349,25 +357,31 @@ export default function EditAccountModal({ isOpen, onClose, onSuccess, user }) {
                       value={formData.newPassword}
                       onChange={handleChange}
                       className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
-                      placeholder="Nhập mật khẩu mới (ít nhất 6 ký tự)"
+                      placeholder="Enter new password (at least 6 characters)"
                       disabled={loading}
                     />
                     <button
                       type="button"
-                      onClick={() => togglePasswordVisibility('newPassword')}
+                      onClick={() => togglePasswordVisibility("newPassword")}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
                     >
-                      {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      {showNewPassword ? (
+                        <EyeOff size={18} />
+                      ) : (
+                        <Eye size={18} />
+                      )}
                     </button>
                   </div>
                   {errors.newPassword && (
-                    <p className="text-red-500 text-sm mt-1">{errors.newPassword}</p>
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.newPassword}
+                    </p>
                   )}
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Xác nhận mật khẩu mới
+                    Confirm New Password
                   </label>
                   <div className="relative">
                     <input
@@ -376,44 +390,49 @@ export default function EditAccountModal({ isOpen, onClose, onSuccess, user }) {
                       value={formData.confirmNewPassword}
                       onChange={handleChange}
                       className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
-                      placeholder="Nhập lại mật khẩu mới"
+                      placeholder="Re-enter new password"
                       disabled={loading}
                     />
                     <button
                       type="button"
-                      onClick={() => togglePasswordVisibility('confirm')}
+                      onClick={() => togglePasswordVisibility("confirm")}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
                     >
-                      {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      {showConfirmPassword ? (
+                        <EyeOff size={18} />
+                      ) : (
+                        <Eye size={18} />
+                      )}
                     </button>
                   </div>
                   {errors.confirmNewPassword && (
-                    <p className="text-red-500 text-sm mt-1">{errors.confirmNewPassword}</p>
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.confirmNewPassword}
+                    </p>
                   )}
                 </div>
               </div>
             )}
           </div>
 
-          {/* Lưu ý */}
+          {/* Notes */}
           <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 p-3 rounded-lg text-sm">
-            <p className="font-semibold">Lưu ý:</p>
+            <p className="font-semibold">Note:</p>
             <ul className="list-disc pl-4 mt-1 space-y-1">
-              <li>Các trường có dấu * là bắt buộc</li>
-              <li>Mật khẩu phải có ít nhất 6 ký tự</li>
-              <li>Khi thay đổi mật khẩu cần nhập đúng mật khẩu hiện tại</li>
-              <li>Trạng thái "Đã khóa" sẽ không thể đăng nhập</li>
+              <li>Fields marked with * are required</li>
+              <li>When changing password, current password must be correct</li>
+              <li>"Inactive" status cannot log in</li>
             </ul>
           </div>
 
-          {/* Thông báo lỗi */}
+          {/* Error notification */}
           {errors.submit && (
             <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg">
               {errors.submit}
             </div>
           )}
 
-          {/* Nút hành động */}
+          {/* Action buttons */}
           <div className="flex gap-3 pt-4 border-t">
             <button
               type="button"
@@ -421,7 +440,7 @@ export default function EditAccountModal({ isOpen, onClose, onSuccess, user }) {
               className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
               disabled={loading}
             >
-              Hủy
+              Cancel
             </button>
             <button
               type="submit"
@@ -431,12 +450,12 @@ export default function EditAccountModal({ isOpen, onClose, onSuccess, user }) {
               {loading ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  Đang lưu...
+                  Saving...
                 </>
               ) : (
                 <>
                   <Save size={18} />
-                  Lưu thay đổi
+                  Save Changes
                 </>
               )}
             </button>

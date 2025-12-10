@@ -26,11 +26,11 @@ export default function AccountManagement() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Bộ lọc & tìm kiếm
+  // Filters & search
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRole, setSelectedRole] = useState("all");
 
-  // Phân trang
+  // Pagination
   const [pageIndex, setPageIndex] = useState(1);
   const [pageSize] = useState(1000);
   const [totalPages, setTotalPages] = useState(1);
@@ -42,20 +42,20 @@ export default function AccountManagement() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
 
-  // Role options for creating accounts (chỉ mentor và finance)
+  // Role options for creating accounts (only mentor and finance)
   const roleOptions = [
-    { value: "Mentor", label: "Giảng viên/Hướng dẫn", icon: UserCog },
-    { value: "Finance", label: "Nhân viên tài chính", icon: Users },
-    // Có thể thêm các role khác nếu cần
+    { value: "Mentor", label: "Mentor", icon: UserCog },
+    { value: "Finance", label: "Finance Staff", icon: Users },
+    // Can add other roles if needed
   ];
 
-  // Role options for filtering (bao gồm tất cả)
+  // Role options for filtering (including all)
   const filterRoleOptions = [
-    { value: "all", label: "Tất cả vai trò" },
-    { value: "Mentor", label: "Giảng viên" },
-    { value: "User", label: "Sinh viên" },
-    { value: "Staff", label: "Quản trị viên" },
-    { value: "Finance", label: "Nhân viên tài chính" },
+    { value: "all", label: "All Roles" },
+    { value: "Mentor", label: "Mentor" },
+    { value: "User", label: "Student" },
+    { value: "Staff", label: "Administrator" },
+    { value: "Finance", label: "Finance Staff" },
   ];
 
   const fetchUsers = async () => {
@@ -81,8 +81,8 @@ export default function AccountManagement() {
         response.totalPages || Math.ceil((response.totalCount || 0) / pageSize)
       );
     } catch (err) {
-      console.error("Lỗi khi tải danh sách người dùng:", err);
-      setError("Không thể tải danh sách tài khoản. Vui lòng thử lại sau.");
+      console.error("Error loading user list:", err);
+      setError("Unable to load account list. Please try again later.");
       setUsers([]);
     } finally {
       setLoading(false);
@@ -113,15 +113,16 @@ export default function AccountManagement() {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Bạn có chắc muốn xóa tài khoản này?")) return;
+    if (!window.confirm("Are you sure you want to delete this account?"))
+      return;
 
     try {
       await userService.deleteUser(id);
       setUsers(users.filter((u) => u.id !== id));
-      alert("Xóa thành công!");
+      alert("Delete successful!");
     } catch (err) {
-      console.error("Lỗi khi xóa:", err);
-      alert("Xóa thất bại!");
+      console.error("Error deleting:", err);
+      alert("Delete failed!");
     }
   };
 
@@ -129,16 +130,16 @@ export default function AccountManagement() {
     const newStatus = user.status === "Active" ? "Inactive" : "Active";
     const confirmMessage =
       newStatus === "Active"
-        ? "Bạn có chắc muốn kích hoạt tài khoản này?"
-        : "Bạn có chắc muốn khóa tài khoản này?";
+        ? "Are you sure you want to activate this account?"
+        : "Are you sure you want to deactivate this account?";
 
     if (!window.confirm(confirmMessage)) return;
 
     try {
-      // Gọi API để cập nhật trạng thái
+      // Call API to update status
       await userService.updateUserStatus(user.id, { status: newStatus });
 
-      // Cập nhật local state
+      // Update local state
       setUsers(
         users.map((u) =>
           u.id === user.id
@@ -147,39 +148,43 @@ export default function AccountManagement() {
         )
       );
 
-      alert(`Đã ${newStatus === "Active" ? "kích hoạt" : "khóa"} tài khoản!`);
+      alert(
+        `Account has been ${
+          newStatus === "Active" ? "activated" : "deactivated"
+        }!`
+      );
     } catch (err) {
-      console.error("Lỗi khi cập nhật trạng thái:", err);
-      alert("Cập nhật trạng thái thất bại!");
+      console.error("Error updating status:", err);
+      alert("Status update failed!");
     }
   };
 
   const handleCreateSuccess = (newUser) => {
-    // Thêm user mới vào danh sách
+    // Add new user to list
     setUsers([newUser, ...users]);
     setTotalUsers((prev) => prev + 1);
     setShowCreateModal(false);
-    alert("Tạo tài khoản thành công!");
+    alert("Account created successfully!");
   };
 
   const handleEditSuccess = (updatedUser) => {
     setUsers(users.map((u) => (u.id === updatedUser.id ? updatedUser : u)));
     setShowEditModal(false);
-    alert("Cập nhật tài khoản thành công!");
+    alert("Account updated successfully!");
   };
 
   const handleExport = () => {
-    // Lọc và định dạng dữ liệu để export
+    // Filter and format data for export
     const exportData = users.map((user) => ({
       ID: user.id,
-      "Họ tên": user.name || user.fullName,
+      "Full Name": user.name || user.fullName,
       Email: user.email,
-      "Vai trò": user.role,
-      "Trạng thái": user.status === "Active" ? "Hoạt động" : "Đã khóa",
-      "Ngày tạo": user.createdAt || new Date().toLocaleDateString(),
+      Role: user.role,
+      Status: user.status === "Active" ? "Active" : "Inactive",
+      "Created Date": user.createdAt || new Date().toLocaleDateString(),
     }));
 
-    // Tạo CSV
+    // Create CSV
     const csvContent = [
       Object.keys(exportData[0]).join(","),
       ...exportData.map((row) => Object.values(row).join(",")),
@@ -198,26 +203,26 @@ export default function AccountManagement() {
     link.click();
     document.body.removeChild(link);
 
-    alert("Xuất file CSV thành công!");
+    alert("CSV file exported successfully!");
   };
 
-  // Hàm format hiển thị role
+  // Function to format role display
   const formatRoleDisplay = (user) => {
-    // Nếu user.roles là mảng, lấy role đầu tiên
+    // If user.roles is an array, take the first role
     const role =
       Array.isArray(user.roles) && user.roles.length > 0
         ? user.roles[0].name
-        : user.role || "Chưa xác định";
+        : user.role || "Not specified";
 
     const roleMap = {
-      Mentor: "Giảng viên",
-      User: "Sinh viên",
-      Staff: "Quản trị viên",
-      Finance: "Nhân viên tài chính",
-      "Giảng viên": "Giảng viên",
-      "Sinh viên": "Sinh viên",
-      "Quản trị viên": "Quản trị viên",
-      "Nhân viên tài chính": "Nhân viên tài chính",
+      Mentor: "Lecturer",
+      User: "Student",
+      Staff: "Administrator",
+      Finance: "Finance Staff",
+      "Giảng viên": "Lecturer",
+      "Sinh viên": "Student",
+      "Quản trị viên": "Administrator",
+      "Nhân viên tài chính": "Finance Staff",
     };
     return roleMap[role] || role;
   };
@@ -230,9 +235,9 @@ export default function AccountManagement() {
       className="p-6"
     >
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">Quản lý Tài khoản</h1>
+        <h1 className="text-3xl font-bold text-gray-800">Account Management</h1>
         <p className="text-gray-600">
-          Quản lý và tạo tài khoản cho giảng viên, nhân viên tài chính
+          Manage and create accounts for lecturers and finance staff
         </p>
       </div>
 
@@ -246,7 +251,7 @@ export default function AccountManagement() {
             />
             <input
               type="text"
-              placeholder="Tìm kiếm theo tên, email hoặc ID..."
+              placeholder="Search by name, email, or ID..."
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -274,7 +279,7 @@ export default function AccountManagement() {
               className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition"
             >
               <UserPlus size={20} />
-              <span>Tạo tài khoản</span>
+              <span>Create Account</span>
             </button>
 
             <button
@@ -292,7 +297,7 @@ export default function AccountManagement() {
       {loading && (
         <div className="text-center py-12">
           <Loader2 className="animate-spin inline-block" size={32} />
-          <p className="mt-2 text-gray-600">Đang tải dữ liệu...</p>
+          <p className="mt-2 text-gray-600">Loading data...</p>
         </div>
       )}
 
@@ -304,7 +309,7 @@ export default function AccountManagement() {
             onClick={fetchUsers}
             className="ml-auto text-blue-600 hover:text-blue-800"
           >
-            Thử lại
+            Retry
           </button>
         </div>
       )}
@@ -321,19 +326,19 @@ export default function AccountManagement() {
                       ID
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      Họ tên
+                      Full Name
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                       Email
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      Vai trò
+                      Role
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      Trạng thái
+                      Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      Thao tác
+                      Actions
                     </th>
                   </tr>
                 </thead>
@@ -345,7 +350,7 @@ export default function AccountManagement() {
                         className="text-center py-8 text-gray-500"
                       >
                         <Users className="inline-block mb-2" size={32} />
-                        <p>Không tìm thấy tài khoản nào.</p>
+                        <p>No accounts found.</p>
                       </td>
                     </tr>
                   ) : (
@@ -355,7 +360,7 @@ export default function AccountManagement() {
                           #{user.id}
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-900">
-                          {user.name || user.fullName || "Chưa cập nhật"}
+                          {user.name || user.fullName || "Not updated"}
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-600">
                           {user.email}
@@ -387,8 +392,8 @@ export default function AccountManagement() {
                             }`}
                           >
                             {user.status === "Active" || user.isActive
-                              ? "Hoạt động"
-                              : "Đã khóa"}
+                              ? "Active"
+                              : "Inactive"}
                           </span>
                         </td>
                         <td className="px-6 py-4 text-sm">
@@ -396,14 +401,14 @@ export default function AccountManagement() {
                             <button
                               onClick={() => handleViewUser(user)}
                               className="p-1.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded"
-                              title="Xem chi tiết"
+                              title="View details"
                             >
                               <Eye size={16} />
                             </button>
                             <button
                               onClick={() => handleEditUser(user)}
                               className="p-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded"
-                              title="Chỉnh sửa"
+                              title="Edit"
                             >
                               <Edit size={16} />
                             </button>
@@ -412,8 +417,8 @@ export default function AccountManagement() {
                               className="p-1.5 text-orange-600 hover:text-orange-800 hover:bg-orange-50 rounded"
                               title={
                                 user.status === "Active"
-                                  ? "Khóa tài khoản"
-                                  : "Kích hoạt"
+                                  ? "Deactivate account"
+                                  : "Activate account"
                               }
                             >
                               {user.status === "Active" || user.isActive ? (
@@ -425,7 +430,7 @@ export default function AccountManagement() {
                             <button
                               onClick={() => handleDelete(user.id)}
                               className="p-1.5 text-red-600 hover:text-red-800 hover:bg-red-50 rounded"
-                              title="Xóa tài khoản"
+                              title="Delete account"
                             >
                               <Trash2 size={16} />
                             </button>
@@ -439,7 +444,7 @@ export default function AccountManagement() {
             </div>
           </div>
 
-          {/* Phân trang */}
+          {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex justify-center items-center gap-2">
               <button
@@ -447,30 +452,30 @@ export default function AccountManagement() {
                 disabled={pageIndex === 1}
                 className="px-4 py-2 border rounded-lg disabled:opacity-50 hover:bg-gray-50"
               >
-                Trước
+                Previous
               </button>
               <span className="px-4 text-sm">
-                Trang {pageIndex} / {totalPages}
+                Page {pageIndex} / {totalPages}
               </span>
               <button
                 onClick={() => setPageIndex((p) => Math.min(totalPages, p + 1))}
                 disabled={pageIndex === totalPages}
                 className="px-4 py-2 border rounded-lg disabled:opacity-50 hover:bg-gray-50"
               >
-                Sau
+                Next
               </button>
             </div>
           )}
         </>
       )}
 
-      {/* Thống kê nhanh */}
+      {/* Quick Statistics */}
       {!loading && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-8">
           <div className="bg-white rounded-xl shadow-lg p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Tổng tài khoản</p>
+                <p className="text-sm text-gray-500">Total Accounts</p>
                 <p className="text-2xl font-bold">{totalUsers}</p>
               </div>
               <div className="bg-blue-100 p-3 rounded-lg">
@@ -482,7 +487,7 @@ export default function AccountManagement() {
           <div className="bg-white rounded-xl shadow-lg p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Giảng viên</p>
+                <p className="text-sm text-gray-500">Lecturers</p>
                 <p className="text-2xl font-bold">
                   {
                     users.filter(
@@ -504,7 +509,7 @@ export default function AccountManagement() {
           <div className="bg-white rounded-xl shadow-lg p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Nhân viên tài chính</p>
+                <p className="text-sm text-gray-500">Finance Staff</p>
                 <p className="text-2xl font-bold">
                   {
                     users.filter(
@@ -526,7 +531,7 @@ export default function AccountManagement() {
           <div className="bg-white rounded-xl shadow-lg p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Đang hoạt động</p>
+                <p className="text-sm text-gray-500">Active Accounts</p>
                 <p className="text-2xl font-bold">
                   {
                     users.filter((u) => u.status === "Active" || u.isActive)

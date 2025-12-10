@@ -42,10 +42,6 @@ export const performApiRequest = async (
       delete config.headers["Content-Type"];
     }
 
-    console.log(`API Call: ${method} ${endpoint}`, {
-      headers: config.headers,
-    });
-
     const response = await axiosInstance(config);
 
     return normalizeResponse(response);

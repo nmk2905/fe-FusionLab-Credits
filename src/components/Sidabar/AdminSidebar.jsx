@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Link, NavLink, useLocation } from "react-router-dom";
+import React, { useContext, useState } from "react";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Home,
@@ -17,11 +17,13 @@ import {
   FolderPlus,
   CalendarPlus,
 } from "lucide-react";
+import { AuthContext } from "../../contexts/AuthContext";
 
 const AdminSidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const location = useLocation();
+  const { logout } = useContext(AuthContext);
 
   const menuItems = [
     {
@@ -30,17 +32,17 @@ const AdminSidebar = () => {
       path: "/admin/dashboard",
     },
     {
-      title: "Quản lý Account",
+      title: "Account Management", // Quản lý Account
       icon: <UserCog size={20} />,
       path: "/admin/accounts",
     },
     {
-      title: "Tạo Project",
+      title: "Create Project", // Tạo Project
       icon: <FolderPlus size={20} />,
       path: "/admin/create-project",
     },
     {
-      title: "Tạo Học kỳ",
+      title: "Create Semester", // Tạo Học kỳ
       icon: <CalendarPlus size={20} />,
       path: "/admin/create-semester",
     },
@@ -51,9 +53,13 @@ const AdminSidebar = () => {
     expanded: { width: 240 },
   };
 
+  const native = useNavigate();
+
   const handleLogout = () => {
-    // Xử lý logout
+    // Handle logout
+    logout();
     console.log("Logging out...");
+    native("/");
   };
 
   return (
@@ -84,10 +90,12 @@ const AdminSidebar = () => {
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="whitespace-nowrap"
+                className="whitespace-nowrap overflow-hidden"
               >
-                <h1 className="text-xl font-bold">Hệ thống Quản lý</h1>
-                <p className="text-sm text-blue-200">Admin Panel</p>
+                <h1 className="text-xl font-bold truncate">
+                  Management System
+                </h1>
+                <p className="text-sm text-blue-200 truncate">Admin Panel</p>
               </motion.div>
             )}
           </Link>
@@ -135,7 +143,8 @@ const AdminSidebar = () => {
             </div>
             {!isCollapsed && (
               <div>
-                <p className="font-medium">Quản trị viên</p>
+                <p className="font-medium">Administrator</p>{" "}
+                {/* Quản trị viên */}
                 <p className="text-sm text-blue-200">admin@university.edu.vn</p>
               </div>
             )}
@@ -145,7 +154,7 @@ const AdminSidebar = () => {
             className="flex items-center space-x-3 w-full p-3 rounded-lg hover:bg-red-600/20 text-red-200 hover:text-red-100 transition-colors"
           >
             <LogOut size={20} />
-            {!isCollapsed && <span>Đăng xuất</span>}
+            {!isCollapsed && <span>Logout</span>} {/* Đăng xuất */}
           </button>
         </div>
       </motion.aside>
@@ -176,7 +185,8 @@ const AdminSidebar = () => {
                   <BarChart3 className="text-blue-600" size={24} />
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold">Hệ thống Quản lý</h1>
+                  <h1 className="text-xl font-bold">Management System</h1>{" "}
+                  {/* Hệ thống Quản lý */}
                   <p className="text-sm text-blue-200">Admin Panel</p>
                 </div>
               </Link>
@@ -206,7 +216,7 @@ const AdminSidebar = () => {
                 className="flex items-center space-x-3 w-full p-3 rounded-lg hover:bg-red-600/20 text-red-200 hover:text-red-100 transition-colors"
               >
                 <LogOut size={20} />
-                <span>Đăng xuất</span>
+                <span>Logout</span> {/* Đăng xuất */}
               </button>
             </div>
           </motion.aside>
