@@ -13,16 +13,22 @@ import {
   UserCheck,
   ChevronLeft,
   ChevronRight,
-  FolderKanban 
+  FolderKanban,
+  Clock,
 } from "lucide-react";
 import projectService from "../../../../../services/apis/projectApi";
+import semesterService from "../../../../../services/apis/semesterApi";
+import { useNotification } from "../../../../../hook/useNotification";
 
 export default function ViewProject() {
   const [projects, setProjects] = useState([]);
+  const [semesterNames, setSemesterNames] = useState({});
+  const [semesters, setSemesters] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const { showNotification } = useNotification();
   const pageSize = 10;
 
   useEffect(() => {
@@ -32,22 +38,78 @@ export default function ViewProject() {
   const fetchProjects = async () => {
     try {
       setLoading(true);
-    //   const params = {
-    //     pageIndex: currentPage,
-    //     pageSize: pageSize,
-    //     sortDir: "desc",
-    //   };
       const response = await projectService.getAllProjects(1000, 1, "desc");
       console.log("Projects response:", response.rawResponse.data);
 
       if (response?.rawResponse?.data) {
-        setProjects(response?.rawResponse?.data);
+        const projectsData = response.rawResponse.data;
+        setProjects(projectsData);
         setTotalPages(response.rawResponse.data.totalPages || 1);
+
+        const semesterIds = [
+          ...new Set(
+            projectsData.map((project) => project.semesterId).filter((id) => id)
+          ),
+        ];
+
+        await fetchSemesterNames(semesterIds);
       }
     } catch (error) {
       console.error("Error fetching projects:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchSemesterNames = async (semesterIds) => {
+    if (!semesterIds || semesterIds.length === 0) return;
+
+    const namesMap = {};
+
+    try {
+      for (const semesterId of semesterIds) {
+        try {
+          const semesterResponse = await semesterService.getSemesterById(
+            semesterId
+          );
+          setSemesters(semesterResponse.rawResponse.data);
+          if (semesterResponse?.rawResponse?.data?.name) {
+            namesMap[semesterId] = semesterResponse.rawResponse.data.name;
+          } else {
+            namesMap[semesterId] = `Semester ${semesterId}`;
+          }
+        } catch (error) {
+          console.error(`Error fetching semester ${semesterId}:`, error);
+          namesMap[semesterId] = `Semester ${semesterId}`;
+        }
+      }
+
+      setSemesterNames(namesMap);
+    } catch (error) {
+      console.error("Error fetching semester names:", error);
+    }
+  };
+
+  const getSemesterName = (semesterId) => {
+    if (!semesterId) return "N/A";
+    return semesterNames[semesterId] || `Semester ${semesterId}`;
+  };
+
+  // Hàm format date chỉ lấy ngày tháng năm
+  const formatDateOnly = (dateString) => {
+    if (!dateString) return "N/A";
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString("vi-VN", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      });
+      // Hoặc nếu muốn format theo kiểu YYYY-MM-DD:
+      // return date.toISOString().split('T')[0];
+    } catch (error) {
+      console.error("Error formatting date:", error, dateString);
+      return "N/A";
     }
   };
 
@@ -72,7 +134,11 @@ export default function ViewProject() {
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString();
+    return new Date(dateString).toLocaleDateString("vi-VN", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
   };
 
   return (
@@ -131,10 +197,16 @@ export default function ViewProject() {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      ID
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Project
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Semester
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Duration
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Team Size
@@ -156,6 +228,13 @@ export default function ViewProject() {
                       <td className="px-6 py-4">
                         <div>
                           <p className="font-medium text-gray-900">
+                            #{project.id || "Untitled"}
+                          </p>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div>
+                          <p className="font-medium text-gray-900">
                             {project.title || "Untitled"}
                           </p>
                           <p className="text-sm text-gray-500 truncate max-w-xs">
@@ -167,10 +246,24 @@ export default function ViewProject() {
                         <div className="flex items-center gap-2">
                           <Calendar size={16} className="text-gray-400" />
                           <span className="text-gray-700">
-                            {project.semesterId
-                              ? `Semester ${project.semesterId}`
-                              : "N/A"}
+                            {getSemesterName(project.semesterId)}
                           </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <Clock size={14} className="text-gray-400" />
+                            <span className="text-sm text-gray-600">
+                              Start: {formatDateOnly(semesters.startDate)}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Clock size={14} className="text-gray-400" />
+                            <span className="text-sm text-gray-600">
+                              End: {formatDateOnly(semesters.endDate)}
+                            </span>
+                          </div>
                         </div>
                       </td>
                       <td className="px-6 py-4">

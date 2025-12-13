@@ -8,6 +8,10 @@ const semesterService = {
     );
   },
 
+  async getSemesterById(semesterId) {
+    return apiUtils.get(API_ENDPOINTS_SEMESTER.GET_SEMESTER_BY_ID(semesterId));
+  },
+
   async addSemester(semesterData) {
     return apiUtils.post(API_ENDPOINTS_SEMESTER.ADD_SEMESTER, semesterData);
   },
