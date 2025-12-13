@@ -45,7 +45,7 @@ export default function AccountManagement() {
   // Role options for creating accounts (only mentor and finance)
   const roleOptions = [
     { value: "Mentor", label: "Mentor", icon: UserCog },
-    { value: "Finance", label: "Finance Staff", icon: Users },
+    { value: "Finance", label: "Finance Officer", icon: Users },
     // Can add other roles if needed
   ];
 
@@ -54,8 +54,8 @@ export default function AccountManagement() {
     { value: "all", label: "All Roles" },
     { value: "Mentor", label: "Mentor" },
     { value: "User", label: "Student" },
-    { value: "Staff", label: "Administrator" },
-    { value: "Finance", label: "Finance Staff" },
+    { value: "Staff", label: "Staff" },
+    { value: "FinanceOfficer", label: "Finance Officer" },
   ];
 
   const fetchUsers = async () => {
@@ -76,7 +76,7 @@ export default function AccountManagement() {
       console.log("Users response:", response);
 
       setUsers(response?.data?.contends || response.items || []);
-      setTotalUsers(response.totalCount || response.total || 0);
+      setTotalUsers(response?.data?.totalItems || response.total || 0);
       setTotalPages(
         response.totalPages || Math.ceil((response.totalCount || 0) / pageSize)
       );
@@ -159,12 +159,17 @@ export default function AccountManagement() {
     }
   };
 
+  // Trong handleCreateSuccess của AccountManagement
   const handleCreateSuccess = (newUser) => {
-    // Add new user to list
-    setUsers([newUser, ...users]);
+    // Optimistic update - thêm user mới ngay lập tức
+    setUsers((prevUsers) => [newUser, ...prevUsers]);
     setTotalUsers((prev) => prev + 1);
     setShowCreateModal(false);
-    alert("Account created successfully!");
+
+    // Optionally fetch lại để đảm bảo data consistency
+    setTimeout(() => {
+      fetchUsers();
+    }, 500);
   };
 
   const handleEditSuccess = (updatedUser) => {
@@ -215,13 +220,13 @@ export default function AccountManagement() {
         : user.role || "Not specified";
 
     const roleMap = {
-      Mentor: "Lecturer",
+      Mentor: "Mentor",
       User: "Student",
-      Staff: "Administrator",
+      Staff: "Staff",
       Finance: "Finance Staff",
-      "Giảng viên": "Lecturer",
+      "Giảng viên": "Mentor",
       "Sinh viên": "Student",
-      "Quản trị viên": "Administrator",
+      "Quản trị viên": "Staff",
       "Nhân viên tài chính": "Finance Staff",
     };
     return roleMap[role] || role;
@@ -405,13 +410,13 @@ export default function AccountManagement() {
                             >
                               <Eye size={16} />
                             </button>
-                            <button
+                            {/* <button
                               onClick={() => handleEditUser(user)}
                               className="p-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded"
                               title="Edit"
                             >
                               <Edit size={16} />
-                            </button>
+                            </button> */}
                             <button
                               onClick={() => handleToggleStatus(user)}
                               className="p-1.5 text-orange-600 hover:text-orange-800 hover:bg-orange-50 rounded"
@@ -427,13 +432,13 @@ export default function AccountManagement() {
                                 <Unlock size={16} />
                               )}
                             </button>
-                            <button
+                            {/* <button
                               onClick={() => handleDelete(user.id)}
                               className="p-1.5 text-red-600 hover:text-red-800 hover:bg-red-50 rounded"
                               title="Delete account"
                             >
                               <Trash2 size={16} />
-                            </button>
+                            </button> */}
                           </div>
                         </td>
                       </tr>
@@ -487,7 +492,7 @@ export default function AccountManagement() {
           <div className="bg-white rounded-xl shadow-lg p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Lecturers</p>
+                <p className="text-sm text-gray-500">Mentors</p>
                 <p className="text-2xl font-bold">
                   {
                     users.filter(
@@ -509,13 +514,13 @@ export default function AccountManagement() {
           <div className="bg-white rounded-xl shadow-lg p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Finance Staff</p>
+                <p className="text-sm text-gray-500">Finance Officer</p>
                 <p className="text-2xl font-bold">
                   {
                     users.filter(
                       (u) =>
                         (Array.isArray(u.roles) &&
-                          u.roles[0]?.name === "Finance") ||
+                          u.roles[0]?.name === "FinanceOfficer") ||
                         u.role === "Finance" ||
                         u.role === "Nhân viên tài chính"
                     ).length

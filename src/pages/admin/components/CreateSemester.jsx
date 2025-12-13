@@ -26,7 +26,7 @@ export default function CreateSemester() {
   const [existingSemesters, setExistingSemesters] = useState([]);
   const { showNotification } = useNotification();
   console.log(existingSemesters);
-  
+
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [minStartDate, setMinStartDate] = useState("");
@@ -397,8 +397,6 @@ export default function CreateSemester() {
                   />
                 </div>
               </div>
-
-              
             </div>
           </div>
         </div>
@@ -458,11 +456,6 @@ export default function CreateSemester() {
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-900">
                           <div className="font-medium">{semester.name}</div>
-                          {semester.keywordTheme && (
-                            <div className="text-xs text-gray-500 mt-1">
-                              Theme: {semester.keywordTheme}
-                            </div>
-                          )}
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-600">
                           {semester.keywordTheme || "N/A"}

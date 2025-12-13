@@ -32,5 +32,6 @@ export const API_ENDPOINTS_PROJECT = {
 export const API_ENDPOINTS_SEMESTER = {
   GET_CURRENT_SEMESTER: (pageSize, pageIndex, keyword) =>
     `/api/semesters?pageIndex=${pageIndex}&pageSize=${pageSize}&keyword=${keyword}`,
+  GET_SEMESTER_BY_ID: (semesterId) => `/api/semesters/${semesterId}`,
   ADD_SEMESTER: "/api/semesters",
 };
