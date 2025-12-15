@@ -35,3 +35,12 @@ export const API_ENDPOINTS_SEMESTER = {
   GET_SEMESTER_BY_ID: (semesterId) => `/api/semesters/${semesterId}`,
   ADD_SEMESTER: "/api/semesters",
 };
+
+export const API_ENDPOINTS_PROJECT_INVITATION = {
+  SEND_INVITATION: "/api/project-invitations",
+  RESPOND_INVITATION: "/api/project-invitations/accept",
+  GET_INVITATIONS_BY_PROJECT: (projectId, pageIndex = 1, pageSize = 10) =>
+    `/api/project-invitations/project/${projectId}?pageIndex=${pageIndex}&pageSize=${pageSize}`,
+  GET_INVITATION_BY_ID: (id) => `/api/project-invitations/${id}`,
+  DELETE_INVITATION: (id) => `/api/project-invitations/${id}`,
+};

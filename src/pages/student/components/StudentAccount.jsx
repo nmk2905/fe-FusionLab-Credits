@@ -1,268 +1,337 @@
-import React from "react";
+// src/pages/StudentAccount.jsx
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
-  Users,
-  FolderPlus,
+  User,
+  Mail,
+  Phone,
+  IdCard,
   Calendar,
-  TrendingUp,
   Clock,
+  Shield,
   CheckCircle,
+  XCircle,
+  Loader2,
+  Edit3,
+  Save,
+  X,
 } from "lucide-react";
+import userService from "../../../services/apis/userApi";
+import { getUserInfoFromToken } from "../../../utils/tokenUtils";
+import { format } from "date-fns";
+import { apiUtils } from "../../../utils/apiUtils";
+import { API_ENDPOINTS_USER } from "../../../constants/apiEndPoint";
 
 export default function StudentAccount() {
-  const stats = [
-    {
-      title: "Tổng số Account",
-      value: "1,234",
-      icon: <Users size={24} />,
-      color: "bg-blue-500",
-      change: "+12%",
-    },
-    {
-      title: "Project đang mở",
-      value: "24",
-      icon: <FolderPlus size={24} />,
-      color: "bg-green-500",
-      change: "+3",
-    },
-    {
-      title: "Học kỳ hiện tại",
-      value: "HK1 2024",
-      icon: <Calendar size={24} />,
-      color: "bg-purple-500",
-      change: "Đang diễn ra",
-    },
-    {
-      title: "Đăng ký Project",
-      value: "156",
-      icon: <TrendingUp size={24} />,
-      color: "bg-orange-500",
-      change: "+45%",
-    },
-  ];
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const recentActivities = [
-    {
-      user: "Nguyễn Văn A",
-      action: "đã tạo project mới",
-      time: "2 giờ trước",
-      type: "project",
-    },
-    {
-      user: "Trần Thị B",
-      action: "đăng ký project Web Development",
-      time: "4 giờ trước",
-      type: "registration",
-    },
-    {
-      user: "Lê Văn C",
-      action: "cập nhật thông tin tài khoản",
-      time: "6 giờ trước",
-      type: "account",
-    },
-    {
-      user: "Phạm Thị D",
-      action: "tạo học kỳ mới 2024-2025",
-      time: "1 ngày trước",
-      type: "semester",
-    },
-  ];
+  const [editForm, setEditForm] = useState({
+    fullName: "",
+    phoneNumber: "",
+    studentCode: "",
+  });
 
-  const upcomingDeadlines = [
-    {
-      project: "Web Development",
-      deadline: "2024-01-15",
-      status: "sắp đến hạn",
-    },
-    { project: "Mobile App", deadline: "2024-01-20", status: "còn 5 ngày" },
-    { project: "AI Research", deadline: "2024-01-25", status: "còn 10 ngày" },
-  ];
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const token = localStorage.getItem("accessToken") || localStorage.getItem("token");
+        if (!token) {
+          setError("No authentication token found. Please log in again.");
+          setLoading(false);
+          return;
+        }
+
+        const userInfo = getUserInfoFromToken(token);
+        if (!userInfo?.id) {
+          setError("Unable to retrieve user ID from token.");
+          setLoading(false);
+          return;
+        }
+
+        const response = await userService.getCurrentUser(userInfo.id);
+
+        if (response.success) {
+          const userData = response.data;
+          setUser(userData);
+          setEditForm({
+            fullName: userData.fullName || "",
+            phoneNumber: userData.phoneNumber || "",
+            studentCode: userData.studentCode || "",
+          });
+        } else {
+          setError(response.error || "Failed to load account information");
+        }
+      } catch (err) {
+        setError("An error occurred while loading account information");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCurrentUser();
+  }, []);
+
+  const handleSave = async () => {
+    if (!user?.id) return;
+
+    setSaving(true);
+    try {
+      const response = await apiUtils.put(API_ENDPOINTS_USER.GET_USER(user.id), {
+        fullName: editForm.fullName.trim(),
+        phoneNumber: editForm.phoneNumber.trim(),
+        studentCode: editForm.studentCode.trim(),
+        status: user.status || "Active",
+      });
+
+      if (response.success) {
+        setUser((prev) => ({
+          ...prev,
+          fullName: editForm.fullName,
+          phoneNumber: editForm.phoneNumber,
+          studentCode: editForm.studentCode,
+        }));
+        setIsEditing(false);
+        alert("Profile updated successfully!");
+      } else {
+        alert(response.error || "Update failed. Please try again.");
+      }
+    } catch (err) {
+      console.error("Update error:", err);
+      alert("An error occurred while saving changes.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setEditForm({
+      fullName: user?.fullName || "",
+      phoneNumber: user?.phoneNumber || "",
+      studentCode: user?.studentCode || "",
+    });
+    setIsEditing(false);
+  };
+
+  const formatDate = (dateString) => {
+    return format(new Date(dateString), "dd/MM/yyyy HH:mm");
+  };
+
+  const getStatusBadge = (status) => {
+    const isActive = ["active", "hoạt động"].includes(status?.toLowerCase());
+    return (
+      <span
+        className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 w-fit ${
+          isActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+        }`}
+      >
+        {isActive ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
+        {status || "Unknown"}
+      </span>
+    );
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <Loader2 className="w-12 h-12 animate-spin text-blue-600" />
+      </div>
+    );
+  }
+
+  if (error || !user) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
+        <XCircle className="w-16 h-16 text-red-500 mb-4" />
+        <p className="text-xl text-gray-700">{error || "Unable to load profile"}</p>
+      </div>
+    );
+  }
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-    >
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
-        <p className="text-gray-600">Chào mừng trở lại, Quản trị viên!</p>
-      </div>
+    <div className="min-h-screen bg-gray-50 py-8 px-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="max-w-4xl mx-auto"
+      >
+        {/* Profile Header */}
+        <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
+          <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
+            <div className="w-32 h-32 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-5xl font-bold shadow-xl">
+              {user.fullName?.[0]?.toUpperCase() || user.userName?.[0]?.toUpperCase() || "U"}
+            </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {stats.map((stat, index) => (
-          <motion.div
-            key={stat.title}
-            className="bg-white rounded-xl shadow-lg p-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500">{stat.title}</p>
-                <p className="text-2xl font-bold mt-2">{stat.value}</p>
-                <p
-                  className={`text-sm mt-1 ${
-                    stat.change.includes("+")
-                      ? "text-green-600"
-                      : "text-blue-600"
-                  }`}
+            <div className="text-center md:text-left flex-1">
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={editForm.fullName}
+                  onChange={(e) => setEditForm({ ...editForm, fullName: e.target.value })}
+                  className="text-3xl font-bold text-gray-900 bg-gray-100 px-4 py-2 rounded-lg w-full max-w-md border focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Full Name"
+                  autoFocus
+                />
+              ) : (
+                <h1 className="text-3xl font-bold text-gray-900">
+                  {user.fullName || "Not set"}
+                </h1>
+              )}
+
+              <p className="text-gray-600 mt-1">@{user.userName}</p>
+
+              <div className="mt-4 flex flex-wrap gap-3 justify-center md:justify-start">
+                {user.roles?.map((role) => (
+                  <span
+                    key={role.id}
+                    className="px-4 py-2 bg-purple-100 text-purple-800 rounded-full text-sm font-medium flex items-center gap-2"
+                  >
+                    <Shield className="w-4 h-4" />
+                    {role.name}
+                  </span>
+                ))}
+                {getStatusBadge(user.status)}
+              </div>
+
+              {/* Edit Button */}
+              {!isEditing && (
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="mt-6 flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition shadow-md"
                 >
-                  {stat.change}
+                  <Edit3 size={18} />
+                  Edit Profile
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Information Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Personal Information */}
+          <div className="bg-white rounded-xl shadow-md p-6">
+            <h2 className="text-xl font-semibold text-gray-800 mb-6 flex items-center gap-3">
+              <User className="w-6 h-6 text-blue-600" />
+              Personal Information
+            </h2>
+
+            <div className="space-y-5">
+              <div>
+                <p className="text-sm text-gray-500">Student ID</p>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    value={editForm.studentCode}
+                    onChange={(e) => setEditForm({ ...editForm, studentCode: e.target.value })}
+                    className="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    placeholder="e.g., HE123456"
+                  />
+                ) : (
+                  <p className="font-medium text-gray-900 mt-1">
+                    {user.studentCode || "Not set"}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <p className="text-sm text-gray-500">Email</p>
+                <p className="font-medium text-gray-900 flex items-center gap-2 mt-1">
+                  <Mail className="w-4 h-4 text-gray-500" />
+                  {user.email}
                 </p>
               </div>
-              <div className={`${stat.color} p-3 rounded-lg text-white`}>
-                {stat.icon}
+
+              <div>
+                <p className="text-sm text-gray-500">Phone Number</p>
+                {isEditing ? (
+                  <input
+                    type="tel"
+                    value={editForm.phoneNumber}
+                    onChange={(e) => setEditForm({ ...editForm, phoneNumber: e.target.value })}
+                    className="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    placeholder="e.g., 0901234567"
+                  />
+                ) : (
+                  <p className="font-medium text-gray-900 mt-1">
+                    {user.phoneNumber || "Not set"}
+                  </p>
+                )}
               </div>
             </div>
-          </motion.div>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Activities */}
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <h2 className="text-xl font-bold mb-4 flex items-center">
-            <Clock className="mr-2" size={20} />
-            Hoạt động gần đây
-          </h2>
-          <div className="space-y-4">
-            {recentActivities.map((activity, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="flex items-center p-3 hover:bg-gray-50 rounded-lg"
-              >
-                <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                    activity.type === "project"
-                      ? "bg-blue-100"
-                      : activity.type === "registration"
-                      ? "bg-green-100"
-                      : activity.type === "account"
-                      ? "bg-purple-100"
-                      : "bg-orange-100"
-                  }`}
-                >
-                  <span
-                    className={`font-bold ${
-                      activity.type === "project"
-                        ? "text-blue-600"
-                        : activity.type === "registration"
-                        ? "text-green-600"
-                        : activity.type === "account"
-                        ? "text-purple-600"
-                        : "text-orange-600"
-                    }`}
-                  >
-                    {activity.user.charAt(0)}
-                  </span>
-                </div>
-                <div className="ml-4 flex-1">
-                  <p className="font-medium">
-                    <span className="text-blue-600">{activity.user}</span>
-                    <span className="text-gray-600"> {activity.action}</span>
-                  </p>
-                  <p className="text-sm text-gray-500">{activity.time}</p>
-                </div>
-                <div
-                  className={`px-3 py-1 rounded-full text-xs font-medium ${
-                    activity.type === "project"
-                      ? "bg-blue-100 text-blue-800"
-                      : activity.type === "registration"
-                      ? "bg-green-100 text-green-800"
-                      : activity.type === "account"
-                      ? "bg-purple-100 text-purple-800"
-                      : "bg-orange-100 text-orange-800"
-                  }`}
-                >
-                  {activity.type === "project"
-                    ? "Project"
-                    : activity.type === "registration"
-                    ? "Đăng ký"
-                    : activity.type === "account"
-                    ? "Account"
-                    : "Học kỳ"}
-                </div>
-              </motion.div>
-            ))}
           </div>
-        </div>
 
-        {/* Upcoming Deadlines */}
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <h2 className="text-xl font-bold mb-4 flex items-center">
-            <CheckCircle className="mr-2" size={20} />
-            Deadline sắp tới
-          </h2>
-          <div className="space-y-4">
-            {upcomingDeadlines.map((deadline, index) => (
-              <motion.div
-                key={deadline.project}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-blue-300 transition-colors"
-              >
+          {/* Account Activity */}
+          <div className="bg-white rounded-xl shadow-md p-6">
+            <h2 className="text-xl font-semibold text-gray-800 mb-6 flex items-center gap-3">
+              <Calendar className="w-6 h-6 text-green-600" />
+              Account Activity
+            </h2>
+
+            <div className="space-y-4">
+              <div className="flex items-center gap-4">
+                <Clock className="w-5 h-5 text-gray-500" />
                 <div>
-                  <h3 className="font-medium text-gray-800">
-                    {deadline.project}
-                  </h3>
-                  <p className="text-sm text-gray-500">
-                    Deadline: {deadline.deadline}
-                  </p>
+                  <p className="text-sm text-gray-500">Account Created</p>
+                  <p className="font-medium text-gray-900">{formatDate(user.createdAt)}</p>
                 </div>
-                <div className="text-right">
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      deadline.status.includes("sắp đến hạn")
-                        ? "bg-red-100 text-red-800"
-                        : "bg-yellow-100 text-yellow-800"
-                    }`}
-                  >
-                    {deadline.status}
-                  </span>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+              </div>
 
-          {/* Quick Actions */}
-          <div className="mt-8 pt-6 border-t border-gray-200">
-            <h3 className="font-medium text-gray-700 mb-4">Thao tác nhanh</h3>
-            <div className="grid grid-cols-2 gap-3">
-              <a
-                href="/admin/accounts"
-                className="text-center px-4 py-3 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors font-medium"
-              >
-                Quản lý Account
-              </a>
-              <a
-                href="/admin/create-project"
-                className="text-center px-4 py-3 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors font-medium"
-              >
-                Tạo Project
-              </a>
-              <a
-                href="/admin/create-semester"
-                className="text-center px-4 py-3 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors font-medium"
-              >
-                Tạo Học kỳ
-              </a>
-              <a
-                href="/admin/dashboard"
-                className="text-center px-4 py-3 bg-orange-50 text-orange-700 rounded-lg hover:bg-orange-100 transition-colors font-medium"
-              >
-                Xem thống kê
-              </a>
+              <div className="flex items-center gap-4">
+                <Calendar className="w-5 h-5 text-gray-500" />
+                <div>
+                  <p className="text-sm text-gray-500">Last Updated</p>
+                  <p className="font-medium text-gray-900">{formatDate(user.updatedAt)}</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </motion.div>
+
+        {/* Save/Cancel Buttons (Edit Mode) */}
+        {isEditing && (
+          <div className="mt-10 flex justify-end gap-4">
+            <button
+              onClick={handleCancel}
+              className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2 transition"
+              disabled={saving}
+            >
+              <X size={18} />
+              Cancel
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={saving || !editForm.fullName.trim()}
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2 transition shadow-md"
+            >
+              {saving ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save size={18} />
+                  Save Changes
+                </>
+              )}
+            </button>
+          </div>
+        )}
+
+        {/* Footer Note */}
+        <div className="mt-12 text-center text-gray-500 text-sm">
+          Email and username cannot be changed. Contact administrator if needed.
+        </div>
+      </motion.div>
+    </div>
   );
 }
