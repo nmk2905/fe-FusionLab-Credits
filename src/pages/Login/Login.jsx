@@ -49,7 +49,7 @@ export default function Login() {
       Admin: "/admin/dashboard",
       Staff: "/staff",
       User: "/student/dashboard",
-      Mentor: "/mentor",
+      Mentor: "/mentor/view-projects",
       Finance: "/finance",
     };
 

@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useContext } from "react";
 import { Routes, Route } from "react-router-dom";
 import AdminLayout from "../../components/layout/AdminLayout";
 import Dashboard from "./components/Dashboard";
 import AccountManagement from "./components/AccountManagement/AccountManagement";
 import ProjectManagement from "./components/ProjectManagement/ProjectManagement"; // Đã thay đổi
 import CreateSemester from "./components/CreateSemester";
+import { AuthContext } from "../../contexts/AuthContext";
+import Loading from "../../components/Loading/Loading";
 
 // Tạo một wrapper component cho mỗi trang
 const AdminPageWrapper = ({ children }) => {
@@ -12,6 +14,10 @@ const AdminPageWrapper = ({ children }) => {
 };
 
 export default function Admin() {
+  const { loading } = useContext(AuthContext);
+    if (loading) {
+      return <Loading /> ;
+    }
   return (
     <Routes>
       <Route

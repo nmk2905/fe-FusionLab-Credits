@@ -17,9 +17,9 @@ import {
   Unlock,
 } from "lucide-react";
 import userService from "../../../../services/apis/userApi";
-import CreateAccountModal from "../AccountManagement/components/CreateAccountModal";
-import ViewAccountModal from "../AccountManagement/components/ViewAccountModal";
-import EditAccountModal from "../AccountManagement/components/EditAccountModal";
+import CreateAccountModal from "./components/CreateAccountModal";
+import ViewAccountModal from "./components/ViewAccountModal";
+import EditAccountModal from "./components/EditAccountModal";
 
 export default function AccountManagement() {
   const [users, setUsers] = useState([]);
