@@ -26,6 +26,7 @@ export const API_ENDPOINTS_PROJECT = {
   GET_ALL_PROJECTS: (pageSize = 1000, pageIndex = 1, sortDir = "") =>
     `/api/projects?pageIndex=${pageIndex}&pageSize=${pageSize}&sortDir=${sortDir}`,
   GET_PROJECT_BY_ID: (projectId) => `/api/projects/${projectId}`,
+  GET_PROJECT_BY_MENTOR_ID: (mentorId) => `/api/projects/mentor/${mentorId}`,
   ADD_PROJECT: "/api/projects",
 };
 
