@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from "../pages/Login/Login";
 import HomeStudent from "../pages/student/components/HomeStudent";
 import Register from "../pages/Register/Register";
-import Admin from "../pages/Admin/Admin";
+import Admin from "../pages/admin/Admin";
 import Student from "../pages/student/Student"; 
 import Mentor from "../pages/Mentor/Mentor";
 
