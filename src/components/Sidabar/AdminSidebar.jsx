@@ -22,7 +22,7 @@ import { AuthContext } from "../../contexts/AuthContext";
 const AdminSidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const { logout } = useContext(AuthContext);
+  const { logout, user } = useContext(AuthContext);
 
   const menuItems = [
     {
@@ -142,9 +142,11 @@ const AdminSidebar = () => {
             </div>
             {!isCollapsed && (
               <div>
-                <p className="font-medium">Administrator</p>{" "}
+                <p className="font-medium">{user?.fullName || "admin@university.edu.vn"}</p>{" "}
                 {/* Quản trị viên */}
-                <p className="text-sm text-blue-200">admin@university.edu.vn</p>
+                <p className="text-sm text-blue-200">
+                  {user?.email || "admin@university.edu.vn"}
+                </p>
               </div>
             )}
           </div>
