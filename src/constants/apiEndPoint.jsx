@@ -45,3 +45,12 @@ export const API_ENDPOINTS_PROJECT_INVITATION = {
   GET_INVITATION_BY_ID: (id) => `/api/project-invitations/${id}`,
   DELETE_INVITATION: (id) => `/api/project-invitations/${id}`,
 };
+
+export const API_ENDPOINTS_PROJECT_MEMBER = {
+  GET_ALL: "/api/project-members",
+  GET_BY_ID: (id) => `/api/project-members/${id}`,
+  JOIN: "/api/project-members",
+  UPDATE_ROLE: (id) => `/api/project-members/${id}`,
+  DELETE: (id) => `/api/project-members/${id}`,
+  LEAVE: "/api/project-members/leave",
+};
