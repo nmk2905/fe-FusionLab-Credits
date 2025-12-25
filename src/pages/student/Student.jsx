@@ -10,6 +10,7 @@ import MyPoints from "../student/components/MyPoints";
 import GroupManagement from "../student/components/GroupManagement";
 import PointExchange from "../student/components/PointExchange";
 import StudentAccount from "../student/components/StudentAccount";
+import ProjectDetail from "../student/components/ProjectDetail";
 
 // Wrapper like AdminPageWrapper
 const StudentPageWrapper = ({ children }) => {
@@ -78,6 +79,15 @@ export default function Student() {
         element={
           <StudentPageWrapper>
             <HomeStudent />
+          </StudentPageWrapper>
+        }
+      />
+
+      <Route
+        path="group-management/:projectId"
+        element={
+          <StudentPageWrapper>
+            <ProjectDetail />
           </StudentPageWrapper>
         }
       />
