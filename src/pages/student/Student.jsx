@@ -1,4 +1,4 @@
-// File: student.jsx
+// src/pages/student/student.jsx
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 
@@ -11,8 +11,8 @@ import GroupManagement from "../student/components/GroupManagement";
 import PointExchange from "../student/components/PointExchange";
 import StudentAccount from "../student/components/StudentAccount";
 import ProjectDetail from "../student/components/ProjectDetail";
+import MyGroupDetail from "../student/components/MyGroupDetail"; // Import it
 
-// Wrapper like AdminPageWrapper
 const StudentPageWrapper = ({ children }) => {
   return <StudentLayout>{children}</StudentLayout>;
 };
@@ -56,6 +56,16 @@ export default function Student() {
         }
       />
 
+      {/* NEW: My Group Detail Page */}
+      <Route
+        path="group-management/my-group"
+        element={
+          <StudentPageWrapper>
+            <MyGroupDetail />
+          </StudentPageWrapper>
+        }
+      />
+
       <Route
         path="point-exchange"
         element={
@@ -74,20 +84,21 @@ export default function Student() {
         }
       />
 
-      <Route
-        index
-        element={
-          <StudentPageWrapper>
-            <HomeStudent />
-          </StudentPageWrapper>
-        }
-      />
-
+      {/* Individual project detail (for joining) */}
       <Route
         path="group-management/:projectId"
         element={
           <StudentPageWrapper>
             <ProjectDetail />
+          </StudentPageWrapper>
+        }
+      />
+
+      <Route
+        index
+        element={
+          <StudentPageWrapper>
+            <HomeStudent />
           </StudentPageWrapper>
         }
       />
