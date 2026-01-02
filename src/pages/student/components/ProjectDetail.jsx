@@ -125,8 +125,10 @@ export default function ProjectDetail() {
 
     setLeaving(true);
     try {
-      await projectMemberApi.leaveProject(Number(projectId));
-
+await projectMemberApi.leaveProject({
+  userId: user.id,
+  projectId: Number(projectId)
+});
       alert("You have successfully left the project.");
 
       // Update local state (optional, since we're redirecting)
