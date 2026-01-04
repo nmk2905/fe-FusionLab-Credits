@@ -66,15 +66,17 @@ const projectMemberApi = {
   async removeProjectMember(id) {
     return apiUtils.delete(API_ENDPOINTS_PROJECT_MEMBER.DELETE(id));
   },
+/**
+ * Current user leaves a project
+ */
+async leaveProject({ userId, projectId }) {
+  const payload = { 
+    userId,
+    projectId 
+  };
 
-  /**
-   * Current user leaves a project
-   */
-  async leaveProject(projectId) {
-    const payload = { projectId };
-
-    return apiUtils.post(API_ENDPOINTS_PROJECT_MEMBER.LEAVE, payload);
-  },
+  return apiUtils.post(API_ENDPOINTS_PROJECT_MEMBER.LEAVE, payload);
+},
 };
 
 export default projectMemberApi;
