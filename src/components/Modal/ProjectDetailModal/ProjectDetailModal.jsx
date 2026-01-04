@@ -114,18 +114,6 @@ const ProjectDetailModal = ({ projectId, isOpen, onClose }) => {
     });
   };
 
-  // Hàm format cho Created At (có thể có thêm thời gian nếu cần)
-  const formatDateTime = (dateString) => {
-    if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString("en-EN", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      // hour: "2-digit",
-      // minute: "2-digit",
-    });
-  };
-
   // Lấy start date từ project.createdAt
   const getStartDate = () => {
     return project?.createdAt ? formatDateOnly(project.createdAt) : "N/A";
