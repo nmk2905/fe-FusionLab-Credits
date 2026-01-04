@@ -9,7 +9,7 @@ const projectMemberApi = {
    */
   async getProjectMembers({
     pageIndex = 1,
-    pageSize = 10,
+    pageSize = 100,
     keyword = "",
     projectId,
     userId,

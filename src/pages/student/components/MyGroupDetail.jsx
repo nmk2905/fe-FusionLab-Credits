@@ -21,7 +21,11 @@ export default function MyGroupDetail({ projectId: propProjectId }) {
 
     const fetchMyProjectId = async () => {
       try {
-        const myRes = await projectMemberApi.getMyProjects(user.id);
+        const myRes = await projectMemberApi.getProjectMembers({
+          userId: user.id,
+        });
+        console.log(myRes);
+        
         if (myRes?.success && myRes?.data?.length > 0) {
           setProjectId(myRes.data[0].projectId);
         } else {
@@ -85,8 +89,14 @@ export default function MyGroupDetail({ projectId: propProjectId }) {
     }
   };
 
-  if (loading) return <div className="p-8 text-center">Loading your group...</div>;
-  if (!project) return <div className="p-8 text-center">You are not in any group or project not found.</div>;
+  if (loading)
+    return <div className="p-8 text-center">Loading your group...</div>;
+  if (!project)
+    return (
+      <div className="p-8 text-center">
+        You are not in any group or project not found.
+      </div>
+    );
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
@@ -177,7 +187,10 @@ export default function MyGroupDetail({ projectId: propProjectId }) {
                     )}
                   </p>
                   <p className="text-sm text-gray-500 mt-1">
-                    Joined: {new Date(member.joinAt || member.createdAt).toLocaleDateString()}
+                    Joined:{" "}
+                    {new Date(
+                      member.joinAt || member.createdAt
+                    ).toLocaleDateString()}
                   </p>
                 </div>
                 {member.userId === user?.id && (
