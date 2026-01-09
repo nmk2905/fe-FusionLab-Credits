@@ -12,9 +12,9 @@ const projectService = {
     return apiUtils.get(API_ENDPOINTS_PROJECT.GET_PROJECT_BY_ID(projectId));
   },
 
-  async getProjectByMentorId(mentorId) {
+  async getProjectByMentorId(mentorId, pageSize = 1000, pageIndex = 1, sortDir = "") {
     return apiUtils.get(
-      API_ENDPOINTS_PROJECT.GET_PROJECT_BY_MENTOR_ID(mentorId)
+      API_ENDPOINTS_PROJECT.GET_PROJECT_BY_MENTOR_ID(mentorId, pageSize, pageIndex, sortDir)
     );
   },
 

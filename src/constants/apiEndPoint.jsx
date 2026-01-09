@@ -23,10 +23,10 @@ export const API_ENDPOINTS_USER = {
 };
 
 export const API_ENDPOINTS_PROJECT = {
-  GET_ALL_PROJECTS: (pageSize = 1000, pageIndex = 1, sortDir = "") =>
+  GET_ALL_PROJECTS: (pageSize = 100, pageIndex = 1, sortDir = "") =>
     `/api/projects?pageIndex=${pageIndex}&pageSize=${pageSize}&sortDir=${sortDir}`,
   GET_PROJECT_BY_ID: (projectId) => `/api/projects/${projectId}`,
-  GET_PROJECT_BY_MENTOR_ID: (mentorId) => `/api/projects/mentor/${mentorId}`,
+  GET_PROJECT_BY_MENTOR_ID: (mentorId, pageSize, pageIndex, sortDir) => `/api/projects/mentor/${mentorId}?pageIndex=${pageIndex}&pageSize=${pageSize}&sortDir=${sortDir}`,
   ADD_PROJECT: "/api/projects",
 };
 
@@ -53,4 +53,12 @@ export const API_ENDPOINTS_PROJECT_MEMBER = {
   UPDATE_ROLE: (id) => `/api/project-members/${id}`,
   DELETE: (id) => `/api/project-members/${id}`,
   LEAVE: "/api/project-members/leave",
+};
+
+export const API_ENDPOINTS_MILESTONE = {
+  GET_MILESTONES_BY_PROJECT: (pageIndex, pageSize, projectId) =>
+    `/api/milestones?pageIndex=${pageIndex}&pageSize=${pageSize}&projectId=${projectId}`,
+  ADD_MILESTONE: "/api/milestones",
+  UPDATE_MILESTONE: (milestoneId) => `/api/milestones/${milestoneId}`,
+  DELETE_MILESTONE: (milestoneId) => `/api/milestones/${milestoneId}`,
 };

@@ -23,8 +23,8 @@ export default function CreateProject() {
     semesterId: 0,
     proposerId: 9, // Assuming this comes from logged in user
     mentorId: 0,
-    minMembers: 50,
-    maxMembers: 50,
+    minMembers: 2,
+    maxMembers: 6,
   });
 
   const [semesters, setSemesters] = useState([]);
@@ -246,18 +246,18 @@ export default function CreateProject() {
                   <input
                     type="range"
                     name="minMembers"
-                    min="1"
-                    max="100"
+                    min="2"
+                    max="2"
                     value={projectData.minMembers}
                     onChange={handleChange}
                     className="w-full"
                   />
                   <div className="flex justify-between items-center mt-2">
-                    <span className="text-sm text-gray-500">1</span>
+                    <span className="text-sm text-gray-500">2</span>
                     <span className="text-lg font-semibold">
                       {projectData.minMembers}
                     </span>
-                    <span className="text-sm text-gray-500">100</span>
+                    <span className="text-sm text-gray-500">2</span>
                   </div>
                 </div>
 
@@ -269,18 +269,18 @@ export default function CreateProject() {
                   <input
                     type="range"
                     name="maxMembers"
-                    min="1"
-                    max="100"
+                    min="2"
+                    max="6"
                     value={projectData.maxMembers}
                     onChange={handleChange}
                     className="w-full"
                   />
                   <div className="flex justify-between items-center mt-2">
-                    <span className="text-sm text-gray-500">1</span>
+                    <span className="text-sm text-gray-500">2</span>
                     <span className="text-lg font-semibold">
                       {projectData.maxMembers}
                     </span>
-                    <span className="text-sm text-gray-500">100</span>
+                    <span className="text-sm text-gray-500">6</span>
                   </div>
                 </div>
 

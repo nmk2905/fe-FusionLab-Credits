@@ -52,8 +52,7 @@ export default function ViewProject() {
       setNoDataMessage(""); // Reset message
 
       // Gọi API với mentorId từ user.id
-      const response = await projectApi.getProjectByMentorId(user.id);
-      console.log("Projects response for mentor:", response);
+      const response = await projectApi.getProjectByMentorId(user.id, 100, 1, "Desc");
 
       // Cấu trúc response có thể khác, bạn cần kiểm tra cấu trúc thực tế
       let projectsData = [];

@@ -4,6 +4,7 @@ import MentorLayout from "../../components/layout/MentorLayout";
 import ViewProject from "./components/ManageProject/ViewProject";
 import { AuthContext } from "../../contexts/AuthContext";
 import Loading from "../../components/Loading/Loading";
+import MilestonesManagement from "./components/MilestonesManagement/MilestonesManagement";
 
 const MentorPageWrapper = ({ children }) => {
   return <MentorLayout>{children}</MentorLayout>;
@@ -21,6 +22,15 @@ export default function Mentor() {
         element={
           <MentorPageWrapper>
             <ViewProject />
+          </MentorPageWrapper>
+        }
+      />
+
+      <Route
+        path="milestones"
+        element={
+          <MentorPageWrapper>
+            <MilestonesManagement />
           </MentorPageWrapper>
         }
       />
