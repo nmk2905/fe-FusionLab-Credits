@@ -11,6 +11,7 @@ import {
   Menu,
   X,
   Eye,
+  Flag,
 } from "lucide-react";
 import { AuthContext } from "../../contexts/AuthContext";
 
@@ -18,14 +19,17 @@ const MentorSidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const { logout, user } = useContext(AuthContext);
-  console.log(user);
-  
 
   const menuItems = [
     {
       title: "View Projects",
       icon: <Eye size={20} />, // Đổi icon thành Eye (xem)
       path: "/mentor/view-projects",
+    },
+    {
+      title: "Milestone Management", // Quản lý Milestone
+      icon: <Flag size={20} />,
+      path: "/mentor/milestones",
     },
   ];
 

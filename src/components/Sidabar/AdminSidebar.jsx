@@ -44,7 +44,7 @@ const AdminSidebar = () => {
       title: "Create Semester", // Tạo Học kỳ
       icon: <CalendarPlus size={20} />,
       path: "/admin/create-semester",
-    },
+    }
   ];
 
   const sidebarVariants = {
