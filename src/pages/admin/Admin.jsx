@@ -8,6 +8,7 @@ import CreateSemester from "./components/CreateSemester";
 import { AuthContext } from "../../contexts/AuthContext";
 import Loading from "../../components/Loading/Loading";
 import ProjectDetail from "../ProjectDetail/ProjectDetail";
+import MilestoneDetail from "../ProjectDetail/components/MilestonesTab/MilestoneDetail";
 
 // Tạo một wrapper component cho mỗi trang
 const AdminPageWrapper = ({ children }) => {
@@ -16,9 +17,9 @@ const AdminPageWrapper = ({ children }) => {
 
 export default function Admin() {
   const { loading } = useContext(AuthContext);
-    if (loading) {
-      return <Loading /> ;
-    }
+  if (loading) {
+    return <Loading />;
+  }
   return (
     <Routes>
       <Route
@@ -29,6 +30,7 @@ export default function Admin() {
           </AdminPageWrapper>
         }
       />
+
       <Route
         path="accounts"
         element={
@@ -37,6 +39,7 @@ export default function Admin() {
           </AdminPageWrapper>
         }
       />
+
       <Route
         path="project-management" // Đã thay đổi
         element={
@@ -45,6 +48,7 @@ export default function Admin() {
           </AdminPageWrapper>
         }
       />
+
       <Route
         path="projectDetail/:projectId"
         element={
@@ -53,6 +57,16 @@ export default function Admin() {
           </AdminPageWrapper>
         }
       />
+
+      <Route
+        path="projects/:projectId/milestones/:milestoneId"
+        element={
+          <AdminPageWrapper>
+            <MilestoneDetail />
+          </AdminPageWrapper>
+        }
+      />
+
       <Route
         path="create-semester"
         element={
