@@ -20,7 +20,6 @@ import {
 import projectService from "../../../../../services/apis/projectApi";
 import semesterService from "../../../../../services/apis/semesterApi";
 import { useNotification } from "../../../../../hook/useNotification";
-import ProjectDetailModal from "../../../../../components/Modal/ProjectDetailModal/ProjectDetailModal";
 import { useNavigate } from "react-router-dom";
 
 export default function ViewProject() {
@@ -404,13 +403,6 @@ export default function ViewProject() {
           </div>
         </div>
       </motion.div>
-
-      {/* Modal */}
-      <ProjectDetailModal
-        projectId={selectedProjectId}
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-      />
     </>
   );
 }
