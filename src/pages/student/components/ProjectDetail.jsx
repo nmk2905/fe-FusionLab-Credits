@@ -12,6 +12,7 @@ export default function ProjectDetail() {
 
   const [project, setProject] = useState(null);
   const [members, setMembers] = useState([]);
+  const [hasJoinedAnyProject, setHasJoinedAnyProject] = useState(false);
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
   const [leaving, setLeaving] = useState(false);
@@ -21,6 +22,39 @@ export default function ProjectDetail() {
   const isUserMember = !!currentMember;
   const isFull = project && members.length >= (project.maxMembers || Infinity);
 
+  // Check if user already joined ANY project (using existing API)
+  useEffect(() => {
+    const checkUserMembership = async () => {
+      if (!user?.id) return;
+
+      try {
+        const res = await projectMemberApi.getProjectMembers({
+          userId: user.id,
+          pageSize: 10,     // We just need to know if there's at least 1
+          pageIndex: 1,
+        });
+
+        let userProjects = [];
+
+        if (res?.success && res?.data) {
+          userProjects = Array.isArray(res.data)
+            ? res.data
+            : res.data?.items || Object.values(res.data) || [];
+        } else if (Array.isArray(res?.data)) {
+          userProjects = res.data;
+        }
+
+        setHasJoinedAnyProject(userProjects.length > 0);
+      } catch (err) {
+        console.error("Cannot check if user already joined any project:", err);
+        setHasJoinedAnyProject(false); // fail-safe: allow join attempt
+      }
+    };
+
+    checkUserMembership();
+  }, [user?.id]);
+
+  // Load current project details + members
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -28,8 +62,7 @@ export default function ProjectDetail() {
         setError("");
 
         const projectRes = await projectService.getProjectById(projectId);
-        const projectData = projectRes.data || projectRes;
-        setProject(projectData);
+        setProject(projectRes.data || projectRes);
 
         const membersRes = await projectMemberApi.getProjectMembers({
           projectId: Number(projectId),
@@ -56,14 +89,21 @@ export default function ProjectDetail() {
       }
     };
 
-    if (projectId) {
-      fetchData();
-    }
+    if (projectId) fetchData();
   }, [projectId]);
 
   const handleJoinProject = async () => {
     if (!user) {
       alert("Please log in to join the project.");
+      return;
+    }
+
+    // Prevent joining if already in another project
+    if (hasJoinedAnyProject && !isUserMember) {
+      alert(
+        "You have already joined a project.\n\n" +
+        "You can only choose ONE project per semester."
+      );
       return;
     }
 
@@ -78,38 +118,62 @@ export default function ProjectDetail() {
     }
 
     setJoining(true);
+
     try {
-      await projectMemberApi.joinProject({
-        role: "member",
+      const joinRes = await projectMemberApi.joinProject({
+        role: "User",
         userId: user.id,
         projectId: Number(projectId),
       });
 
-      alert("Successfully joined the project!");
+      // Only treat as success when API returns success flag
+      if (joinRes?.success) {
+        alert("Successfully joined the project as Member!");
 
-      // Refetch members for instant UI update
-      const membersRes = await projectMemberApi.getProjectMembers({
-        projectId: Number(projectId),
-        pageSize: 50,
-      });
-      let updatedMembers = [];
-      if (membersRes?.success && membersRes?.data) {
-        updatedMembers = Array.isArray(membersRes.data)
-          ? membersRes.data
-          : Object.values(membersRes.data);
-      } else if (Array.isArray(membersRes)) {
-        updatedMembers = membersRes;
+        // Refresh member list
+        const membersRes = await projectMemberApi.getProjectMembers({
+          projectId: Number(projectId),
+          pageSize: 50,
+        });
+
+        let updatedMembers = [];
+        if (membersRes?.success && membersRes?.data) {
+          updatedMembers = Array.isArray(membersRes.data)
+            ? membersRes.data
+            : Object.values(membersRes.data);
+        } else if (Array.isArray(membersRes?.data)) {
+          updatedMembers = membersRes.data;
+        }
+
+        setMembers(updatedMembers);
+        setHasJoinedAnyProject(true);
+
+        navigate("/student/group-management", { state: { fromJoin: true } });
+      } else {
+        throw new Error("Join request did not return success");
       }
-      setMembers(updatedMembers);
-
-      // Redirect to Group Management (same as before)
-      navigate("/student/group-management", { state: { fromJoin: true } });
     } catch (err) {
       console.error("Join project error:", err);
-      const msg =
-        err.response?.data?.message ||
-        "Unable to join the project. It may be full or you may already be a member.";
-      alert(msg);
+
+      let message = "Unable to join the project. Please try again.";
+
+      // Try to show better message from backend
+      if (err.response?.data?.message) {
+        const backendMsg = err.response.data.message.toLowerCase();
+        if (
+          backendMsg.includes("already") ||
+          backendMsg.includes("one project") ||
+          backendMsg.includes("only one")
+        ) {
+          message =
+            "You have already joined a project.\n" +
+            "You can only choose ONE project per semester.";
+        } else {
+          message = err.response.data.message;
+        }
+      }
+
+      alert(message);
     } finally {
       setJoining(false);
     }
@@ -125,16 +189,16 @@ export default function ProjectDetail() {
 
     setLeaving(true);
     try {
-await projectMemberApi.leaveProject({
-  userId: user.id,
-  projectId: Number(projectId)
-});
+      await projectMemberApi.leaveProject({
+        userId: user.id,
+        projectId: Number(projectId),
+      });
+
       alert("You have successfully left the project.");
 
-      // Update local state (optional, since we're redirecting)
       setMembers(members.filter((m) => m.userId !== user.id));
+      setHasJoinedAnyProject(false);
 
-      // KEY CHANGE: Redirect back to Group Management after leaving
       navigate("/student/group-management");
     } catch (err) {
       console.error("Leave project error:", err);
@@ -144,17 +208,9 @@ await projectMemberApi.leaveProject({
     }
   };
 
-  if (loading) {
-    return <div className="p-8 text-center">Loading project details...</div>;
-  }
-
-  if (error) {
-    return <div className="p-8 text-center text-red-600">{error}</div>;
-  }
-
-  if (!project) {
-    return <div className="p-8 text-center">Project not found.</div>;
-  }
+  if (loading) return <div className="p-8 text-center">Loading project details...</div>;
+  if (error) return <div className="p-8 text-center text-red-600">{error}</div>;
+  if (!project) return <div className="p-8 text-center">Project not found.</div>;
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
@@ -214,29 +270,38 @@ await projectMemberApi.leaveProject({
           </div>
         </div>
 
-        <div className="flex gap-4 flex-wrap">
-          {/* Join Button - shown only if not a member */}
+        <div className="flex gap-6 flex-wrap items-end">
+          {/* Join section */}
           {!isUserMember && (
-            <button
-              onClick={handleJoinProject}
-              disabled={joining || isFull || !user}
-              className={`px-8 py-4 font-bold text-lg rounded-xl transition ${
-                joining || isFull || !user
-                  ? "bg-gray-400 text-gray-700 cursor-not-allowed"
-                  : "bg-blue-600 text-white hover:bg-blue-700"
-              }`}
-            >
-              {joining
-                ? "Joining..."
-                : isFull
-                ? "Group is Full"
-                : !user
-                ? "Log in to Join"
-                : "Join This Project"}
-            </button>
+            <>
+              {hasJoinedAnyProject ? (
+                <div className="px-8 py-4 bg-yellow-50 border border-yellow-200 rounded-xl text-yellow-800 text-lg font-medium">
+                  You have already joined a project.<br />
+                  You can only choose <strong>ONE project per semester</strong>.
+                </div>
+              ) : (
+                <button
+                  onClick={handleJoinProject}
+                  disabled={joining || isFull || !user}
+                  className={`px-8 py-4 font-bold text-lg rounded-xl transition ${
+                    joining || isFull || !user
+                      ? "bg-gray-400 text-gray-700 cursor-not-allowed"
+                      : "bg-blue-600 text-white hover:bg-blue-700"
+                  }`}
+                >
+                  {joining
+                    ? "Joining..."
+                    : isFull
+                    ? "Group is Full"
+                    : !user
+                    ? "Log in to Join"
+                    : "Join This Project"}
+                </button>
+              )}
+            </>
           )}
 
-          {/* Leave Button - shown only if user is a member */}
+          {/* Leave button */}
           {isUserMember && (
             <button
               onClick={handleLeaveProject}
@@ -252,10 +317,10 @@ await projectMemberApi.leaveProject({
             </button>
           )}
 
-          {/* Status message when already a member (and not leaving) */}
+          {/* Already member status */}
           {isUserMember && !leaving && (
             <div className="flex items-center px-8 py-4 text-lg font-medium text-green-700">
-              ✓ You are a member of this project
+              ✓ You are a member of this project (Member)
             </div>
           )}
         </div>
@@ -282,13 +347,11 @@ await projectMemberApi.leaveProject({
               >
                 <div>
                   <p className="font-medium">
-                    User ID: {member.userId} ({member.role || "member"})
+                    User ID: {member.userId} ({member.role || "User"})
                   </p>
                   <p className="text-sm text-gray-600">
                     Joined:{" "}
-                    {new Date(
-                      member.joinAt || member.createdAt
-                    ).toLocaleDateString("en-US")}
+                    {new Date(member.joinAt || member.createdAt).toLocaleDateString("en-US")}
                   </p>
                 </div>
                 {member.userId === user?.id && (
