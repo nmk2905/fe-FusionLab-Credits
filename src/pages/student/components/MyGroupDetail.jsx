@@ -10,7 +10,7 @@ import {
   History,
 } from "lucide-react";
 import projectApi from "../../../services/apis/projectApi";
-import projectMemberApi from "../../../services/apis/projectMemberApi";
+import projectMemberService from "../../../services/apis/projectMemberApi";
 import { AuthContext } from "../../../contexts/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -46,7 +46,7 @@ export default function MyGroupDetail({ projectId: propProjectId }) {
 
       try {
         setLoadingProjects(true);
-        const myRes = await projectMemberApi.getProjectMembers({
+        const myRes = await projectMemberService.getProjectMembers({
           userId: user.id,
         });
 
@@ -109,7 +109,7 @@ export default function MyGroupDetail({ projectId: propProjectId }) {
     const fetchMembers = async () => {
       try {
         setLoading(true);
-        const memRes = await projectMemberApi.getProjectMembers({
+        const memRes = await projectMemberService.getProjectMembers({
           projectId: selectedProjectId,
           pageSize: 50,
         });
@@ -144,7 +144,7 @@ export default function MyGroupDetail({ projectId: propProjectId }) {
     if (!window.confirm("Are you sure you want to leave this group?")) return;
 
     try {
-      await projectMemberApi.leaveProject({
+      await projectMemberService.leaveProject({
         userId: user.id,
         projectId: selectedProjectId,
       });

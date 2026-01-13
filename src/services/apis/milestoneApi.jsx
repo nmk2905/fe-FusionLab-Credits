@@ -13,6 +13,12 @@ const milestoneService = {
     );
   },
 
+  async getMilestoneById(milestoneId) {
+    return apiUtils.get(
+      API_ENDPOINTS_MILESTONE.GET_MILESTONE_BY_ID(milestoneId)
+    );
+  },
+
   async addMilestone(milestoneData) {
     return apiUtils.post(API_ENDPOINTS_MILESTONE.ADD_MILESTONE, milestoneData);
   },

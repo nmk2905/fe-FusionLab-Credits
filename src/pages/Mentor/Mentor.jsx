@@ -37,7 +37,7 @@ export default function Mentor() {
       />
 
       <Route
-        path="projectDetail/:projectId/milestones/:milestoneId"
+        path="projects/:projectId/milestones/:milestoneId"
         element={
           <MentorPageWrapper>
             <MilestoneDetail />

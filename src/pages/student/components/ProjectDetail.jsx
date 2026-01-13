@@ -2,7 +2,7 @@ import React, { useEffect, useState, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Users, Calendar, TrendingUp, ArrowLeft, LogOut } from "lucide-react";
 import projectService from "../../../services/apis/projectApi";
-import projectMemberApi from "../../../services/apis/projectMemberApi";
+import projectMemberService from "../../../services/apis/projectMemberApi";
 import { AuthContext } from "../../../contexts/AuthContext";
 
 export default function ProjectDetail() {
@@ -28,7 +28,7 @@ export default function ProjectDetail() {
       if (!user?.id) return;
 
       try {
-        const res = await projectMemberApi.getProjectMembers({
+        const res = await projectMemberService.getProjectMembers({
           userId: user.id,
           pageSize: 10,     // We just need to know if there's at least 1
           pageIndex: 1,
@@ -64,7 +64,7 @@ export default function ProjectDetail() {
         const projectRes = await projectService.getProjectById(projectId);
         setProject(projectRes.data || projectRes);
 
-        const membersRes = await projectMemberApi.getProjectMembers({
+        const membersRes = await projectMemberService.getProjectMembers({
           projectId: Number(projectId),
           pageSize: 50,
         });
@@ -131,7 +131,7 @@ export default function ProjectDetail() {
         alert("Successfully joined the project as Member!");
 
         // Refresh member list
-        const membersRes = await projectMemberApi.getProjectMembers({
+        const membersRes = await projectMemberService.getProjectMembers({
           projectId: Number(projectId),
           pageSize: 50,
         });

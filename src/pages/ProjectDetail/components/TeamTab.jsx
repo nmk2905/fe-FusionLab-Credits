@@ -9,7 +9,7 @@ import {
   MoreVertical,
   Shield,
 } from "lucide-react";
-import projectMemberApi from "../../../services/apis/projectMemberApi";
+import projectMemberService from "../../../services/apis/projectMemberApi";
 import userService from "../../../services/apis/userApi";
 
 const TeamTab = ({ projectId }) => {
@@ -24,7 +24,7 @@ const TeamTab = ({ projectId }) => {
         setTeamMemberDetails([]);
 
         // 1. Lấy danh sách project members
-        const membersResponse = await projectMemberApi.getProjectMembers({
+        const membersResponse = await projectMemberService.getProjectMembers({
           projectId: projectId,
         });
 
