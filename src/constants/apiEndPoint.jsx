@@ -56,8 +56,8 @@ export const API_ENDPOINTS_PROJECT_MEMBER = {
 };
 
 export const API_ENDPOINTS_MILESTONE = {
-  GET_MILESTONES_BY_PROJECT: (pageIndex, pageSize, projectId) =>
-    `/api/milestones?pageIndex=${pageIndex}&pageSize=${pageSize}&projectId=${projectId}`,
+  GET_MILESTONES_BY_PROJECT: (pageIndex, pageSize, projectId, sortDir) =>
+    `/api/milestones?pageIndex=${pageIndex}&pageSize=${pageSize}&projectId=${projectId}&sortDir=${sortDir}`,
   ADD_MILESTONE: "/api/milestones",
   UPDATE_MILESTONE: (milestoneId) => `/api/milestones/${milestoneId}`,
   DELETE_MILESTONE: (milestoneId) => `/api/milestones/${milestoneId}`,

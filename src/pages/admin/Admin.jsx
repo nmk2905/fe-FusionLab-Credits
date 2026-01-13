@@ -7,6 +7,7 @@ import ProjectManagement from "./components/ProjectManagement/ProjectManagement"
 import CreateSemester from "./components/CreateSemester";
 import { AuthContext } from "../../contexts/AuthContext";
 import Loading from "../../components/Loading/Loading";
+import ProjectDetail from "../ProjectDetail/ProjectDetail";
 
 // Tạo một wrapper component cho mỗi trang
 const AdminPageWrapper = ({ children }) => {
@@ -45,18 +46,18 @@ export default function Admin() {
         }
       />
       <Route
-        path="create-semester"
+        path="projectDetail/:projectId"
         element={
           <AdminPageWrapper>
-            <CreateSemester />
+            <ProjectDetail />
           </AdminPageWrapper>
         }
       />
       <Route
-        index
+        path="create-semester"
         element={
           <AdminPageWrapper>
-            <Dashboard />
+            <CreateSemester />
           </AdminPageWrapper>
         }
       />

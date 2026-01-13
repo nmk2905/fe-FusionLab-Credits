@@ -26,11 +26,6 @@ const MentorSidebar = () => {
       icon: <Eye size={20} />, // Đổi icon thành Eye (xem)
       path: "/mentor/view-projects",
     },
-    {
-      title: "Milestone Management", // Quản lý Milestone
-      icon: <Flag size={20} />,
-      path: "/mentor/milestones",
-    },
   ];
 
   const sidebarVariants = {

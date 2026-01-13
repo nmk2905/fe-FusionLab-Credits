@@ -21,8 +21,10 @@ import projectService from "../../../../../services/apis/projectApi";
 import semesterService from "../../../../../services/apis/semesterApi";
 import { useNotification } from "../../../../../hook/useNotification";
 import ProjectDetailModal from "../../../../../components/Modal/ProjectDetailModal/ProjectDetailModal";
+import { useNavigate } from "react-router-dom";
 
 export default function ViewProject() {
+  const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [semesterNames, setSemesterNames] = useState({});
   const [semesters, setSemesters] = useState([]);
@@ -117,10 +119,9 @@ export default function ViewProject() {
     }
   };
 
-  // Hàm mở modal xem chi tiết project
+  // Xem project detail
   const handleViewProject = (projectId) => {
-    setSelectedProjectId(projectId);
-    setIsModalOpen(true);
+    navigate(`/admin/projectDetail/${projectId}`);
   };
 
   // Hàm đóng modal
