@@ -7,7 +7,8 @@ const milestoneService = {
       API_ENDPOINTS_MILESTONE.GET_MILESTONES_BY_PROJECT(
         pageIndex,
         pageSize,
-        projectId
+        projectId,
+        "Desc"
       )
     );
   },

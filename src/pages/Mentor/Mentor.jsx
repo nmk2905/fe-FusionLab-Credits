@@ -4,7 +4,8 @@ import MentorLayout from "../../components/layout/MentorLayout";
 import ViewProject from "./components/ManageProject/ViewProject";
 import { AuthContext } from "../../contexts/AuthContext";
 import Loading from "../../components/Loading/Loading";
-import MilestonesManagement from "./components/MilestonesManagement/MilestonesManagement";
+import ProjectDetail from "../ProjectDetail/ProjectDetail";
+import MilestoneDetail from "../ProjectDetail/components/MilestonesTab/MilestoneDetail";
 
 const MentorPageWrapper = ({ children }) => {
   return <MentorLayout>{children}</MentorLayout>;
@@ -12,7 +13,7 @@ const MentorPageWrapper = ({ children }) => {
 export default function Mentor() {
   const { loading } = useContext(AuthContext);
   if (loading) {
-    return <Loading /> ;
+    return <Loading />;
   }
 
   return (
@@ -27,19 +28,19 @@ export default function Mentor() {
       />
 
       <Route
-        path="milestones"
+        path="projectDetail/:projectId"
         element={
           <MentorPageWrapper>
-            <MilestonesManagement />
+            <ProjectDetail />
           </MentorPageWrapper>
         }
       />
 
       <Route
-        index
+        path="projectDetail/:projectId/milestones/:milestoneId"
         element={
           <MentorPageWrapper>
-            <h1>Mentor Dashboard</h1>
+            <MilestoneDetail />
           </MentorPageWrapper>
         }
       />
