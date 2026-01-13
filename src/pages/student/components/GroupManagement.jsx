@@ -10,6 +10,7 @@ import {
   History,
   List,
   UserCheck,
+  Lock,
 } from "lucide-react";
 import projectApi from "../../../services/apis/projectApi";
 import projectMemberApi from "../../../services/apis/projectMemberApi";
@@ -28,7 +29,8 @@ export default function GroupManagement() {
   const location = useLocation();
 
   const [allProjects, setAllProjects] = useState([]);
-  const [myProjectId, setMyProjectId] = useState(null);
+  const [hasJoinedAnyProject, setHasJoinedAnyProject] = useState(false);
+  const [userCurrentProjectId, setUserCurrentProjectId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("newest");
@@ -41,92 +43,59 @@ export default function GroupManagement() {
     ? TABS.HISTORY
     : TABS.LIST;
 
-  // Auto switch after joining (from ProjectDetail)
-  useEffect(() => {
-    if (location.state?.fromJoin && user?.id) {
-      const refetchMyProject = async () => {
-        try {
-          setLoading(true);
-          // Use existing getProjectMembers with userId filter
-          const myRes = await projectMemberApi.getProjectMembers({
-            userId: user.id,
-            pageSize: 50, // Get enough to be safe
-          });
+  // Function to check if user has joined any project
+  const checkUserMembership = async () => {
+    if (!user?.id) return;
 
-          let memberships = [];
-          if (myRes?.success && myRes?.data) {
-            memberships = Array.isArray(myRes.data)
-              ? myRes.data
-              : Object.values(myRes.data);
-          } else if (Array.isArray(myRes)) {
-            memberships = myRes;
-          }
+    try {
+      const res = await projectMemberApi.getProjectMembers({
+        userId: user.id,
+        pageSize: 10,
+      });
 
-          if (memberships.length > 0) {
-            setMyProjectId(memberships[0].projectId);
-            navigate("/student/group-management/my-group", { replace: true });
-          }
-        } catch (err) {
-          console.error("Failed to refetch my project after join", err);
-        } finally {
-          setLoading(false);
-          // Clear navigation state
-          navigate(location.pathname, { replace: true, state: {} });
-        }
-      };
-
-      refetchMyProject();
-    }
-  }, [location.state?.fromJoin, user, navigate]);
-
-  // Fetch all projects + detect user's current project
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!user?.id) {
-        setLoading(false);
-        return;
+      let memberships = [];
+      if (res?.success && res?.data) {
+        memberships = Array.isArray(res.data)
+          ? res.data
+          : res.data?.items || Object.values(res.data) || [];
+      } else if (Array.isArray(res)) {
+        memberships = res;
       }
 
-      try {
-        setLoading(true);
+      const hasAny = memberships.length > 0;
+      setHasJoinedAnyProject(hasAny);
 
+      if (hasAny) {
+        setUserCurrentProjectId(memberships[0].projectId);
+      } else {
+        setUserCurrentProjectId(null);
+      }
+    } catch (err) {
+      console.warn("Cannot check user membership:", err);
+      setHasJoinedAnyProject(false);
+    }
+  };
+
+  // Load all projects + check membership
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+
+      try {
         // Fetch all projects
         const allRes = await projectApi.getAllProjects(1000, 1, "desc");
         let projectsData = [];
         if (allRes?.success && allRes?.data) {
-          projectsData = Object.values(allRes.data);
-        } else if (Array.isArray(allRes?.data)) {
-          projectsData = allRes.data;
+          projectsData = Array.isArray(allRes.data)
+            ? allRes.data
+            : Object.values(allRes.data);
         } else if (Array.isArray(allRes)) {
           projectsData = allRes;
         }
         setAllProjects(projectsData);
 
-        // Find user's current project using getProjectMembers with userId filter
-        try {
-          const myRes = await projectMemberApi.getProjectMembers({
-            userId: user.id,
-            pageSize: 50,
-          });
-
-          let memberships = [];
-          if (myRes?.success && myRes?.data) {
-            memberships = Array.isArray(myRes.data)
-              ? myRes.data
-              : Object.values(myRes.data);
-          } else if (Array.isArray(myRes)) {
-            memberships = myRes;
-          }
-
-          if (memberships.length > 0) {
-            setMyProjectId(memberships[0].projectId);
-          } else {
-            setMyProjectId(null);
-          }
-        } catch (err) {
-          console.warn("Could not fetch user membership:", err);
-          setMyProjectId(null);
-        }
+        // Check user membership
+        await checkUserMembership();
       } catch (err) {
         console.error("Error loading group data:", err);
       } finally {
@@ -135,9 +104,30 @@ export default function GroupManagement() {
     };
 
     fetchData();
-  }, [user]);
+  }, [user?.id]);
 
-  // Rest of your code remains exactly the same...
+  // Auto-redirect to /my-group if user has already joined a project
+  // and is trying to view the LIST tab
+  useEffect(() => {
+    if (!loading && hasJoinedAnyProject && activeTab === TABS.LIST) {
+      navigate("/student/group-management/my-group", { replace: true });
+    }
+  }, [loading, hasJoinedAnyProject, activeTab, navigate]);
+
+  // Handle auto-redirect after just joining a project (from join page)
+  useEffect(() => {
+    if (location.state?.fromJoin) {
+      checkUserMembership().then(() => {
+        if (hasJoinedAnyProject) {
+          navigate("/student/group-management/my-group", { replace: true });
+        }
+        // Clear navigation state to prevent repeated redirect
+        navigate(location.pathname, { replace: true, state: {} });
+      });
+    }
+  }, [location.state?.fromJoin, navigate, hasJoinedAnyProject]);
+
+  // Memoized filtered projects
   const availableProjects = useMemo(() => {
     return allProjects.filter(
       (p) =>
@@ -164,7 +154,13 @@ export default function GroupManagement() {
   }, [availableProjects, search, sort]);
 
   if (loading) {
-    return <div className="p-8 text-center">Loading...</div>;
+    return <div className="p-8 text-center">Loading group status...</div>;
+  }
+
+  // Early return + redirect (extra safety layer)
+  if (hasJoinedAnyProject && activeTab === TABS.LIST) {
+    navigate("/student/group-management/my-group", { replace: true });
+    return null;
   }
 
   return (
@@ -172,38 +168,57 @@ export default function GroupManagement() {
       {/* Tabs */}
       <div className="border-b border-gray-200 mb-8">
         <nav className="-mb-px flex space-x-8">
+          {/* Project List Tab */}
           <button
-            onClick={() => !myProjectId && navigate("/student/group-management")}
-            disabled={!!myProjectId}
-            className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
+            onClick={() =>
+              !hasJoinedAnyProject && navigate("/student/group-management")
+            }
+            disabled={hasJoinedAnyProject}
+            title={
+              hasJoinedAnyProject
+                ? "You already joined a project. You can only choose one per semester."
+                : ""
+            }
+            className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 relative ${
               activeTab === TABS.LIST
                 ? "border-blue-600 text-blue-600"
-                : myProjectId
-                ? "border-transparent text-gray-400 cursor-not-allowed"
-                : "border-transparent text-gray-500 hover:text-gray-700"
+                : "border-transparent text-gray-500"
+            } ${
+              hasJoinedAnyProject
+                ? "text-gray-400 cursor-not-allowed opacity-70"
+                : "hover:text-gray-700"
             }`}
           >
             <List size={20} />
             Project List
-            {myProjectId && <span className="ml-2 text-xs">(Locked)</span>}
+            {hasJoinedAnyProject && (
+              <span className="ml-2 text-xs text-red-500 font-semibold flex items-center gap-1">
+                <Lock size={14} />
+                Locked
+              </span>
+            )}
           </button>
 
+          {/* My Group Tab */}
           <button
-            onClick={() => navigate("/student/group-management/my-group")}
-            disabled={!myProjectId}
+            onClick={() =>
+              hasJoinedAnyProject && navigate("/student/group-management/my-group")
+            }
+            disabled={!hasJoinedAnyProject}
             className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
               activeTab === TABS.MY_GROUP
                 ? "border-blue-600 text-blue-600"
-                : myProjectId
+                : hasJoinedAnyProject
                 ? "border-transparent text-gray-500 hover:text-gray-700"
-                : "border-transparent text-gray-400 cursor-not-allowed"
+                : "text-gray-400 cursor-not-allowed opacity-70"
             }`}
           >
             <UserCheck size={20} />
             My Group
-            {!myProjectId && <span className="ml-2 text-xs">(None)</span>}
+            {!hasJoinedAnyProject && <span className="ml-2 text-xs">(None)</span>}
           </button>
 
+          {/* History Tab */}
           <button
             onClick={() => navigate("/student/group-management/history")}
             className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
@@ -218,7 +233,7 @@ export default function GroupManagement() {
         </nav>
       </div>
 
-      {/* LIST TAB CONTENT */}
+      {/* Project List Tab Content */}
       {activeTab === TABS.LIST && (
         <>
           <h1 className="text-3xl font-bold mb-2">Choose Your Project</h1>
@@ -234,14 +249,14 @@ export default function GroupManagement() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search projects..."
-                className="w-full pl-10 pr-4 py-3 border rounded-lg"
+                className="w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value)}
-              className="px-5 py-3 border rounded-lg"
+              className="px-5 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="newest">Newest</option>
               <option value="points">Highest Points</option>
@@ -288,7 +303,7 @@ export default function GroupManagement() {
                       onClick={() =>
                         navigate(`/student/group-management/${project.id}`)
                       }
-                      className="w-full bg-blue-600 text-white py-3 rounded-xl flex justify-center gap-2"
+                      className="w-full bg-blue-600 text-white py-3 rounded-xl flex justify-center gap-2 hover:bg-blue-700 transition"
                     >
                       <CheckCircle size={18} />
                       View & Join
@@ -301,6 +316,24 @@ export default function GroupManagement() {
         </>
       )}
 
+      {/* My Group Tab Content */}
+      {activeTab === TABS.MY_GROUP && (
+        <div className="text-center py-16">
+          <UserCheck size={64} className="mx-auto text-blue-500 mb-6" />
+          <h2 className="text-2xl font-bold mb-4">My Current Group</h2>
+          <p className="text-gray-600">
+            You are currently in a project group.
+          </p>
+          <button
+            onClick={() => navigate("/student/group-management/my-group")}
+            className="mt-6 px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition"
+          >
+            View Group Details
+          </button>
+        </div>
+      )}
+
+      {/* History Tab Content */}
       {activeTab === TABS.HISTORY && (
         <div className="text-center py-16">
           <History size={64} className="mx-auto text-gray-300 mb-6" />
