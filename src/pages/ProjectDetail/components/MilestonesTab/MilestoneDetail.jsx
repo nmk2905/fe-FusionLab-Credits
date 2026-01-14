@@ -1,14 +1,21 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
-import TaskList from "./TaskManagement/TaskList"; // Import trực tiếp TaskList.jsx
+import { useParams, useNavigate } from "react-router-dom"; // Thêm useNavigate
+import {
+  CalendarIcon,
+  PlusIcon,
+  CheckCircleIcon,
+  ArrowLeftIcon,
+} from "@heroicons/react/24/outline"; // Thêm ArrowLeftIcon
+import TaskList from "./TaskManagement/TaskList";
 import milestoneService from "../../../../services/apis/milestoneApi";
 
 const MilestoneDetail = () => {
   const { milestoneId } = useParams();
+  const navigate = useNavigate(); // Khởi tạo navigate
   const [milestone, setMilestone] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState("detail"); // 'detail' hoặc 'task'
+  const [activeTab, setActiveTab] = useState("detail");
 
   useEffect(() => {
     const fetchMilestone = async () => {
@@ -30,7 +37,11 @@ const MilestoneDetail = () => {
     }
   }, [milestoneId]);
 
-  // Hàm định dạng ngày
+  // Hàm xử lý quay lại
+  const handleBack = () => {
+    navigate(-1); // Quay lại trang trước đó
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
     const date = new Date(dateString);
@@ -41,7 +52,6 @@ const MilestoneDetail = () => {
     });
   };
 
-  // Hàm lấy màu cho trạng thái milestone
   const getMilestoneStatusColor = (status) => {
     switch (status) {
       case "Completed":
@@ -86,12 +96,21 @@ const MilestoneDetail = () => {
           <h3 className="text-lg font-medium text-red-800">Lỗi</h3>
         </div>
         <p className="mt-2 text-red-700">{error}</p>
-        <button
-          onClick={() => window.location.reload()}
-          className="mt-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-        >
-          Thử lại
-        </button>
+        <div className="mt-4 flex space-x-3">
+          <button
+            onClick={handleBack}
+            className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 flex items-center"
+          >
+            <ArrowLeftIcon className="w-4 h-4 mr-2" />
+            Back
+          </button>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+          >
+            Try again
+          </button>
+        </div>
       </div>
     );
   }
@@ -118,31 +137,54 @@ const MilestoneDetail = () => {
         <p className="mt-1 text-gray-500">
           Milestone với ID {milestoneId} không tồn tại.
         </p>
+        <button
+          onClick={handleBack}
+          className="mt-6 px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 flex items-center mx-auto"
+        >
+          <ArrowLeftIcon className="w-4 h-4 mr-2" />
+          Back
+        </button>
       </div>
     );
   }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header */}
+      {/* Header với nút Back */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">{milestone.title}</h1>
-        <div className="mt-2 flex items-center space-x-4">
-          <span
-            className={`px-3 py-1 rounded-full text-sm font-medium ${getMilestoneStatusColor(
-              milestone.status
-            )}`}
+        <div className="flex items-center mb-4">
+          <button
+            onClick={handleBack}
+            className="flex items-center text-gray-600 hover:text-gray-900 transition-colors mr-4"
           >
-            {milestone.status}
-          </span>
-          <span className="text-gray-500">
-            Project ID: {milestone.projectId}
-          </span>
-          {milestone.isDelayed && (
-            <span className="px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
-              Delayed
-            </span>
-          )}
+            <ArrowLeftIcon className="w-5 h-5 mr-2" />
+            <span>Back</span>
+          </button>
+        </div>
+
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">
+              {milestone.title}
+            </h1>
+            <div className="mt-2 flex items-center space-x-4">
+              <span
+                className={`px-3 py-1 rounded-full text-sm font-medium ${getMilestoneStatusColor(
+                  milestone.status
+                )}`}
+              >
+                {milestone.status}
+              </span>
+              <span className="text-gray-500">
+                Project ID: {milestone.projectId}
+              </span>
+              {milestone.isDelayed && (
+                <span className="px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                  Delayed
+                </span>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -205,128 +247,198 @@ const MilestoneDetail = () => {
       {/* Tab Content */}
       <div className="mt-8">
         {activeTab === "detail" ? (
-          /* Milestone Detail Tab */
-          <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-            <div className="px-4 py-5 sm:px-6">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">
-                Milestone Information
-              </h3>
-              <p className="mt-1 max-w-2xl text-sm text-gray-500">
-                Detailed information about the milestone.
-              </p>
-            </div>
-            <div className="border-t border-gray-200">
-              <dl>
-                <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-500">Title</dt>
-                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                    {milestone.title}
-                  </dd>
-                </div>
-                <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-500">
-                    Description
-                  </dt>
-                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                    {milestone.description}
-                  </dd>
-                </div>
-                <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-500">
-                    Start Date
-                  </dt>
-                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                    {formatDate(milestone.startDate)}
-                  </dd>
-                </div>
-                <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-500">
-                    Due Date
-                  </dt>
-                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                    {formatDate(milestone.dueDate)}
-                  </dd>
-                </div>
-                <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-500">Weight</dt>
-                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                    <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full">
-                      {milestone.weight * 100}%
-                    </span>
-                  </dd>
-                </div>
-                <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-500">Status</dt>
-                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                    <span
-                      className={`px-3 py-1 rounded-full text-sm font-medium ${getMilestoneStatusColor(
-                        milestone.status
-                      )}`}
-                    >
-                      {milestone.status}
-                    </span>
-                  </dd>
-                </div>
-                <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-500">
-                    Created At
-                  </dt>
-                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                    {formatDate(milestone.createdAt)}
-                  </dd>
-                </div>
-
-                {milestone.originalDueDate && (
-                  <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                    <dt className="text-sm font-medium text-gray-500">
-                      Original Due Date
-                    </dt>
-                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                      {formatDate(milestone.originalDueDate)}
-                    </dd>
-                  </div>
-                )}
-                <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-500">
-                    Is Delayed
-                  </dt>
-                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                    {milestone.isDelayed ? (
-                      <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full">
-                        Yes
-                      </span>
-                    ) : (
-                      <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full">
-                        No
-                      </span>
-                    )}
-                  </dd>
-                </div>
-              </dl>
-            </div>
-          </div>
-        ) : (
-          /* Task Management Tab */
-          <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-            <div className="px-4 py-5 sm:px-6">
-              <div className="flex justify-between items-center">
+          /* Milestone Detail Tab - Redesigned */
+          <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
+            {/* Header với gradient */}
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-5 border-b border-gray-200">
+              <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg leading-6 font-medium text-gray-900">
-                    Task Management
+                  <h3 className="text-xl font-semibold text-gray-800">
+                    Milestone Details
                   </h3>
-                  <p className="mt-1 max-w-2xl text-sm text-gray-500">
-                    Manage tasks for milestone:{" "}
-                    <span className="font-medium">{milestone.title}</span>
+                  <p className="mt-1 text-sm text-gray-600">
+                    Complete information about this milestone
                   </p>
                 </div>
-                <div className="text-sm text-gray-500">
-                  Milestone ID:{" "}
-                  <span className="font-medium">{milestone.id}</span>
+                <div className="flex items-center space-x-2">
+                  <span
+                    className={`px-4 py-2 rounded-full text-sm font-medium ${getMilestoneStatusColor(
+                      milestone.status
+                    )}`}
+                  >
+                    {milestone.status}
+                  </span>
                 </div>
               </div>
             </div>
-            <div className="border-t border-gray-200">
-              {/* Render TaskList component và truyền milestoneId */}
+
+            {/* Content với layout card */}
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Left Column - Basic Info */}
+                <div className="space-y-4">
+                  {/* Title Card */}
+                  <div className="bg-gray-50 rounded-xl p-4">
+                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                      Title
+                    </h4>
+                    <p className="text-lg font-medium text-gray-900">
+                      {milestone.title}
+                    </p>
+                  </div>
+
+                  {/* Description Card */}
+                  <div className="bg-gray-50 rounded-xl p-4">
+                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                      Description
+                    </h4>
+                    <p className="text-gray-700 whitespace-pre-wrap">
+                      {milestone.description || "No description provided"}
+                    </p>
+                  </div>
+
+                  {/* Weight & Progress Card */}
+                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4">
+                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                      Weight & Progress
+                    </h4>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="px-4 py-2 bg-white border border-blue-200 text-blue-700 rounded-lg font-medium">
+                          {milestone.weight * 100}%
+                        </span>
+                      </div>
+                      {/* Thêm progress bar nếu có dữ liệu */}
+                      {milestone.progress !== undefined && (
+                        <div className="w-2/3">
+                          <div className="flex justify-between text-sm text-gray-600 mb-1">
+                            <span>Progress</span>
+                            <span>{milestone.progress}%</span>
+                          </div>
+                          <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-green-500 rounded-full transition-all duration-300"
+                              style={{ width: `${milestone.progress}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Column - Dates & Metadata */}
+                <div className="space-y-4">
+                  {/* Timeline Card */}
+                  <div className="border border-gray-200 rounded-xl p-4">
+                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">
+                      Time line
+                    </h4>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+                            <CalendarIcon className="w-4 h-4 text-blue-600" />
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-500">Start Date</p>
+                            <p className="font-medium">
+                              {formatDate(milestone.startDate)}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center mr-3">
+                            <CalendarIcon className="w-4 h-4 text-indigo-600" />
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-500">Due Date</p>
+                            <p className="font-medium">
+                              {formatDate(milestone.dueDate)}
+                            </p>
+                          </div>
+                        </div>
+                        {milestone.isDelayed && (
+                          <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">
+                            Delayed
+                          </span>
+                        )}
+                      </div>
+
+                      {milestone.originalDueDate && (
+                        <div className="flex items-center">
+                          <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center mr-3">
+                            <CalendarIcon className="w-4 h-4 text-amber-600" />
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-500">
+                              Original Due Date
+                            </p>
+                            <p className="font-medium">
+                              {formatDate(milestone.originalDueDate)}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Metadata Card */}
+                  <div className="bg-gray-50 rounded-xl p-4">
+                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">
+                      Meta data
+                    </h4>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">
+                          Created At
+                        </span>
+                        <span className="font-medium">
+                          {formatDate(milestone.createdAt)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">
+                          Milestone ID
+                        </span>
+                        <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">
+                          {milestone.id}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">
+                          Delay Status
+                        </span>
+                        {milestone.isDelayed ? (
+                          <span className="flex items-center">
+                            <span className="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
+                            <span className="text-red-700 font-medium">
+                              Delayed
+                            </span>
+                          </span>
+                        ) : (
+                          <span className="flex items-center">
+                            <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                            <span className="text-green-700 font-medium">
+                              On Track
+                            </span>
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* Task Management Tab - Redesigned */
+          <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
+            {/* Task List Section */}
+            <div className="p-6">
               <TaskList milestoneId={milestoneId} milestone={milestone} />
             </div>
           </div>
