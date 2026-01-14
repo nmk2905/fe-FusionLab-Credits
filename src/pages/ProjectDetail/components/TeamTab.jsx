@@ -49,7 +49,7 @@ const TeamTab = ({ projectId }) => {
         }
 
         // 2. Lấy thông tin chi tiết của users
-        const usersResponse = await userService.getUsersByIds(userIds);
+        const usersResponse = await userService.getCurrentUser(userIds);
         let usersData = [];
 
         if (usersResponse?.rawResponse?.data) {
