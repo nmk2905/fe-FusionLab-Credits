@@ -7,8 +7,15 @@ const milestoneService = {
       API_ENDPOINTS_MILESTONE.GET_MILESTONES_BY_PROJECT(
         pageIndex,
         pageSize,
-        projectId
+        projectId,
+        "Desc"
       )
+    );
+  },
+
+  async getMilestoneById(milestoneId) {
+    return apiUtils.get(
+      API_ENDPOINTS_MILESTONE.GET_MILESTONE_BY_ID(milestoneId)
     );
   },
 

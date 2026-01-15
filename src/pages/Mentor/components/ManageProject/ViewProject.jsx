@@ -21,7 +21,7 @@ import projectApi from "../../../../services/apis/projectApi";
 import semesterService from "../../../../services/apis/semesterApi";
 import { useNotification } from "../../../../hook/useNotification";
 import { AuthContext } from "../../../../contexts/AuthContext";
-import ProjectDetailModal from "../../../../components/Modal/ProjectDetailModal/ProjectDetailModal";
+import { useNavigate } from "react-router-dom";
 
 export default function ViewProject() {
   const { user } = useContext(AuthContext);
@@ -37,6 +37,7 @@ export default function ViewProject() {
   const pageSize = 10;
   const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (user?.id) {
@@ -233,8 +234,7 @@ export default function ViewProject() {
   };
 
   const handleViewProject = (projectId) => {
-    setSelectedProjectId(projectId);
-    setIsModalOpen(true);
+    navigate(`/mentor/projectDetail/${projectId}`);
   };
 
   // Hàm đóng modal
@@ -525,13 +525,6 @@ export default function ViewProject() {
           </div>
         )}
       </motion.div>
-
-      {/* Modal */}
-      <ProjectDetailModal
-        projectId={selectedProjectId}
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-      />
     </>
   );
 }

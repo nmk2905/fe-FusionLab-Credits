@@ -33,7 +33,7 @@ export default function GroupManagement() {
 
   const [allProjects, setAllProjects] = useState([]);
   const [hasJoinedAnyProject, setHasJoinedAnyProject] = useState(false);
-  const [userCurrentProjectId, setUserCurrentProjectId] = useState(null);
+  const [projectMemberService, setUserCurrentProjectId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("newest");
@@ -152,7 +152,7 @@ export default function GroupManagement() {
     if (!user?.id) return;
 
     try {
-      const res = await projectMemberApi.getProjectMembers({
+      const res = await projectMemberService.getProjectMembers({
         userId: user.id,
         pageSize: 10,
       });

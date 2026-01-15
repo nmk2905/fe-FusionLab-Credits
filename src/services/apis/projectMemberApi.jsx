@@ -3,7 +3,7 @@
 import { apiUtils } from "../../utils/apiUtils";
 import { API_ENDPOINTS_PROJECT_MEMBER } from "../../constants/apiEndPoint";
 
-const projectMemberApi = {
+const projectMemberService = {
   /**
    * Get paged project members with optional filters (by projectId, userId, keyword, etc.)
    */
@@ -79,4 +79,4 @@ async leaveProject({ userId, projectId }) {
 },
 };
 
-export default projectMemberApi;
+export default projectMemberService;

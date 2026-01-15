@@ -56,9 +56,19 @@ export const API_ENDPOINTS_PROJECT_MEMBER = {
 };
 
 export const API_ENDPOINTS_MILESTONE = {
-  GET_MILESTONES_BY_PROJECT: (pageIndex, pageSize, projectId) =>
-    `/api/milestones?pageIndex=${pageIndex}&pageSize=${pageSize}&projectId=${projectId}`,
+  GET_MILESTONES_BY_PROJECT: (pageIndex, pageSize, projectId, sortDir) =>
+    `/api/milestones?pageIndex=${pageIndex}&pageSize=${pageSize}&projectId=${projectId}&sortDir=${sortDir}`,
+  GET_MILESTONE_BY_ID: (milestoneId) => `/api/milestones/${milestoneId}`,
   ADD_MILESTONE: "/api/milestones",
   UPDATE_MILESTONE: (milestoneId) => `/api/milestones/${milestoneId}`,
   DELETE_MILESTONE: (milestoneId) => `/api/milestones/${milestoneId}`,
+};
+
+export const API_ENDPOINTS_TASK = { 
+  GET_TASKS_BY_MILESTONE: (milestoneId, pageIndex, pageSize, sortDir) =>
+    `/api/tasks?milestoneId=${milestoneId}&pageIndex=${pageIndex}&pageSize=${pageSize}&sortDir=${sortDir}`,
+  GET_TASK_BY_ID: (taskId) => `/api/tasks/${taskId}`,
+  ADD_TASK: "/api/tasks",
+  UPDATE_TASK: (taskId) => `/api/tasks/${taskId}`,
+  DELETE_TASK: (taskId) => `/api/tasks/${taskId}`,
 };
