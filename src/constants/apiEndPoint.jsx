@@ -39,7 +39,7 @@ export const API_ENDPOINTS_SEMESTER = {
 
 export const API_ENDPOINTS_PROJECT_INVITATION = {
   SEND_INVITATION: "/api/project-invitations",
-  RESPOND_INVITATION: "/api/project-invitations/accept",
+  RESPOND_INVITATION: "/api/project-invitations/accept-or-deny",   // ← changed
   GET_INVITATIONS_BY_PROJECT: (projectId, pageIndex = 1, pageSize = 10) =>
     `/api/project-invitations/project/${projectId}?pageIndex=${pageIndex}&pageSize=${pageSize}`,
   GET_INVITATION_BY_ID: (id) => `/api/project-invitations/${id}`,
