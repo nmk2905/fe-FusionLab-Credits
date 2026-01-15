@@ -14,7 +14,9 @@ import {
   CheckCircle,
 } from "lucide-react";
 import projectApi from "../../../services/apis/projectApi";
-import projectMemberService from "../../../services/apis/projectMemberApi";
+import projectMemberApi from "../../../services/apis/projectMemberApi";
+import projectInvitationService from "../../../services/apis/projectInvitationService";
+import userService from "../../../services/apis/userApi";
 import { AuthContext } from "../../../contexts/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -60,11 +62,7 @@ export default function MyGroupDetail({ projectId: propProjectId }) {
       if (!user?.id) return;
       setLoadingProjects(true);
       try {
-        setLoadingProjects(true);
-        const myRes = await projectMemberService.getProjectMembers({
-          userId: user.id,
-        });
-
+        const myRes = await projectMemberApi.getProjectMembers({ userId: user.id });
         if (myRes?.success && myRes?.rawResponse?.data?.length > 0) {
           const projectIds = myRes.rawResponse.data.map((item) => item.projectId);
           const projectPromises = projectIds.map((id) => projectApi.getProjectById(id));
@@ -111,8 +109,7 @@ export default function MyGroupDetail({ projectId: propProjectId }) {
     const fetchMembers = async () => {
       setLoading(true);
       try {
-        setLoading(true);
-        const memRes = await projectMemberService.getProjectMembers({
+        const memRes = await projectMemberApi.getProjectMembers({
           projectId: selectedProjectId,
           pageSize: 50,
         });
@@ -134,39 +131,45 @@ export default function MyGroupDetail({ projectId: propProjectId }) {
   }, [selectedProjectId]);
 
   // Load users when invite modal opens + search changes
-  // Now only fetches users with role "User" (role id 4)
-  useEffect(() => {
-    if (!showInviteModal) return;
+// Load users when invite modal opens + search changes
+useEffect(() => {
+  if (!showInviteModal) return;
 
-    const loadUsers = async () => {
-      try {
-        const res = await userService.getUsers({
-          role: "User",              // <-- Only students (role = "User")
-          search: searchUserQuery.trim(),
-          pageSize: 50,
-        });
+  const loadUsers = async () => {
+    try {
+      const res = await userService.getUsers({
+        search: searchUserQuery.trim(),
+        pageSize: 50,
+        role: "User",           // ← Add this line - filter only "User" role
+        // role: "4"            // alternative if backend expects role ID instead of name
+      });
 
-        let users = res?.contends || res?.rawResponse?.contends || res?.data?.contends || res?.data || [];
+      let users = res?.contends || res?.rawResponse?.contends || res?.data?.contends || res?.data || [];
 
-        if (!Array.isArray(users)) {
-          console.warn("Users response is not an array:", users);
-          users = [];
-        }
-
-        // Exclude already in group + self
-        const memberUserIds = new Set(members.map((m) => m.userId));
-        users = users.filter((u) => u?.id && !memberUserIds.has(u.id) && u.id !== user?.id);
-
-        setAvailableUsers(users);
-        setCurrentInvitePage(0);
-      } catch (err) {
-        console.error("Failed to load users for invitation:", err);
-        setAvailableUsers([]);
+      if (!Array.isArray(users)) {
+        console.warn("Users response is not an array:", users);
+        users = [];
       }
-    };
 
-    loadUsers();
-  }, [showInviteModal, searchUserQuery, members, user?.id]);
+      // Double safety filter (in case backend filtering is not perfect)
+      const memberUserIds = new Set(members.map((m) => m.userId));
+      users = users.filter((u) => 
+        u?.id && 
+        !memberUserIds.has(u.id) && 
+        u.id !== user?.id &&
+        u.roles?.some(r => r.name === "User")  // extra safety check
+      );
+
+      setAvailableUsers(users);
+      setCurrentInvitePage(0);
+    } catch (err) {
+      console.error("Failed to load users for invitation:", err);
+      setAvailableUsers([]);
+    }
+  };
+
+  loadUsers();
+}, [showInviteModal, searchUserQuery, members, user?.id]);
 
   const sendInvitation = async () => {
     if (!selectedUserToInvite) {
@@ -207,7 +210,7 @@ export default function MyGroupDetail({ projectId: propProjectId }) {
     if (!window.confirm("Are you sure you want to leave this group?")) return;
 
     try {
-      await projectMemberService.leaveProject({
+      await projectMemberApi.leaveProject({
         userId: user.id,
         projectId: selectedProjectId,
       });
@@ -435,7 +438,7 @@ export default function MyGroupDetail({ projectId: propProjectId }) {
         </div>
       </div>
 
-      {/* Invite Modal */}
+      {/* Invite Modal - more compact version */}
       {showInviteModal && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[94vh] flex flex-col overflow-hidden">
@@ -444,7 +447,7 @@ export default function MyGroupDetail({ projectId: propProjectId }) {
               <div>
                 <h2 className="text-xl font-bold text-gray-800">Invite to Project</h2>
                 <p className="text-sm text-gray-600 mt-0.5">
-                  {availableUsers.length} available students
+                  {availableUsers.length} available users
                 </p>
               </div>
               <button
@@ -455,7 +458,7 @@ export default function MyGroupDetail({ projectId: propProjectId }) {
               </button>
             </div>
 
-            {/* Body */}
+            {/* Body - tighter padding */}
             <div className="p-5 flex-1 overflow-y-auto bg-gray-50">
               {/* Search */}
               <div className="relative mb-5">
@@ -464,7 +467,7 @@ export default function MyGroupDetail({ projectId: propProjectId }) {
                   type="text"
                   value={searchUserQuery}
                   onChange={(e) => setSearchUserQuery(e.target.value)}
-                  placeholder="Search students by name or email..."
+                  placeholder="Search by name or email..."
                   className="w-full pl-11 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm"
                 />
               </div>
@@ -473,12 +476,12 @@ export default function MyGroupDetail({ projectId: propProjectId }) {
                 <div className="flex flex-col items-center justify-center py-12 text-gray-500">
                   <Users size={56} className="text-gray-300 mb-3" />
                   <h3 className="text-lg font-medium text-gray-700">
-                    {searchUserQuery ? "No matching students" : "No students available"}
+                    {searchUserQuery ? "No matching users" : "No users available"}
                   </h3>
                   <p className="text-xs mt-1.5 text-center max-w-sm">
                     {searchUserQuery
                       ? "Try different keywords."
-                      : "All eligible students are already in the group."}
+                      : "Everyone eligible is already in the group."}
                   </p>
                 </div>
               ) : (
@@ -500,7 +503,7 @@ export default function MyGroupDetail({ projectId: propProjectId }) {
 
                         <div className="flex-1 min-w-0">
                           <p className="font-semibold text-gray-900 truncate">
-                            {u.fullName || u.name || u.userName || `Student ${u.id}`}
+                            {u.fullName || u.name || u.userName || `User ${u.id}`}
                           </p>
                           {u.email && (
                             <p className="text-xs text-gray-600 truncate mt-0.5">{u.email}</p>
