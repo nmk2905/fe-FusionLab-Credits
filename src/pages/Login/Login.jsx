@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import authService from "../../services/apis/authApi";
 import { useNotification } from "../../hook/useNotification";
 import { Link } from "react-router-dom";
@@ -14,6 +15,7 @@ import {
 } from "lucide-react";
 
 export default function Login() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -42,7 +44,6 @@ export default function Login() {
   const handleAuthSuccess = (token, role) => {
     localStorage.setItem("accessToken", token);
     localStorage.setItem("role", role);
-    //showNotification(MESSAGES.AUTH.LOGIN_SUCCESS);
     showNotification("Login successful", "success");
 
     const redirectPaths = {
@@ -53,8 +54,9 @@ export default function Login() {
       Finance: "/finance",
     };
 
+    const path = redirectPaths[role] || "/";
     setTimeout(() => {
-      window.location.href = redirectPaths[role] || redirectPaths.default;
+      navigate(path); // Sử dụng navigate thay vì window.location.href
     }, 500);
   };
 
