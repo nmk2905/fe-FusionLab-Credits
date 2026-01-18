@@ -1,12 +1,13 @@
 import React from "react";
 import { motion } from "framer-motion";
-import MentorSidebar from "../Sidabar/MentorSidabar";
+import FinanceSidebar from "../Sidabar/FinanceSidebar";
 
-const MentorLayout = ({ children }) => {
+const FinanceLayout = ({ children }) => {
   return (
     <div className="min-h-screen flex">
-      <MentorSidebar />
+      <FinanceSidebar />
       <div className="flex-1 flex flex-col">
+
         <motion.main
           className="flex-1 p-6 bg-gray-50"
           initial={{ opacity: 0, y: 20 }}
@@ -21,4 +22,4 @@ const MentorLayout = ({ children }) => {
   );
 };
 
-export default MentorLayout;
+export default FinanceLayout;
