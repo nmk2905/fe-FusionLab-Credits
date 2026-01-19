@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import authService from "../../services/apis/authApi";
 import { useNotification } from "../../hook/useNotification";
@@ -13,6 +13,7 @@ import {
   LogIn,
   ArrowRight,
 } from "lucide-react";
+import { AuthContext } from "../../contexts/AuthContext";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -23,6 +24,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const { showNotification } = useNotification();
+  const { login } = useContext(AuthContext);
 
   const validateForm = () => {
     const newErrors = {};
@@ -93,8 +95,10 @@ export default function Login() {
         showNotification(result.message || "Login successful!", "success");
 
         const tokenInfo = validateToken(result.data.accessToken);
+        const token = result.data.accessToken;
         if (!tokenInfo) return;
-
+        
+        await login(null, token);
         handleAuthSuccess(result.data.accessToken, tokenInfo.role);
       } else {
         let errorMsg =
@@ -122,7 +126,7 @@ export default function Login() {
       console.error("Unexpected error:", error);
       showNotification(
         "An unexpected error occurred. Please try again.",
-        "error"
+        "error",
       );
     } finally {
       setLoading(false);
