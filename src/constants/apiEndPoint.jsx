@@ -26,7 +26,8 @@ export const API_ENDPOINTS_PROJECT = {
   GET_ALL_PROJECTS: (pageSize = 100, pageIndex = 1, sortDir = "") =>
     `/api/projects?pageIndex=${pageIndex}&pageSize=${pageSize}&sortDir=${sortDir}`,
   GET_PROJECT_BY_ID: (projectId) => `/api/projects/${projectId}`,
-  GET_PROJECT_BY_MENTOR_ID: (mentorId, pageSize, pageIndex, sortDir) => `/api/projects/mentor/${mentorId}?pageIndex=${pageIndex}&pageSize=${pageSize}&sortDir=${sortDir}`,
+  GET_PROJECT_BY_MENTOR_ID: (mentorId, pageSize, pageIndex, sortDir) =>
+    `/api/projects/mentor/${mentorId}?pageIndex=${pageIndex}&pageSize=${pageSize}&sortDir=${sortDir}`,
   ADD_PROJECT: "/api/projects",
 };
 
@@ -64,7 +65,7 @@ export const API_ENDPOINTS_MILESTONE = {
   DELETE_MILESTONE: (milestoneId) => `/api/milestones/${milestoneId}`,
 };
 
-export const API_ENDPOINTS_TASK = { 
+export const API_ENDPOINTS_TASK = {
   GET_TASKS_BY_MILESTONE: (milestoneId, pageIndex, pageSize, sortDir) =>
     `/api/tasks?milestoneId=${milestoneId}&pageIndex=${pageIndex}&pageSize=${pageSize}&sortDir=${sortDir}`,
   GET_TASK_BY_ID: (taskId) => `/api/tasks/${taskId}`,
