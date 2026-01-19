@@ -92,14 +92,17 @@ export default function Login() {
     try {
       const result = await authService.login(loginData);
       if (result.success) {
-        showNotification(result.message || "Login successful!", "success");
+        showNotification("Login successful!", "success");
 
         const tokenInfo = validateToken(result.data.accessToken);
-        const token = result.data.accessToken;
+        const token = result?.rawResponse?.data.accessToken;
         if (!tokenInfo) return;
-        
-        await login(null, token);
-        handleAuthSuccess(result.data.accessToken, tokenInfo.role);
+
+        await login(token);
+        handleAuthSuccess(
+          result?.rawResponse?.data.accessToken,
+          tokenInfo.role,
+        );
       } else {
         let errorMsg =
           result.error || "Login failed. Please check your credentials.";
