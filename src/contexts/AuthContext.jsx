@@ -56,9 +56,9 @@ export const AuthProvider = ({ children }) => {
     initializeAuth();
   }, [isUpdate]);
 
-  const login = async (userData, token) => {
-    if (!userData || !token) {
-      console.error("Invalid userData or token");
+  const login = async (token) => {
+    if (!token) {
+      console.error("Invalid token");
       return;
     }
 
