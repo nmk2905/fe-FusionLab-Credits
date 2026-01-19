@@ -87,3 +87,11 @@ export const API_ENDPOINTS_SUBMISSION = {
   DELETE: (id) => `/api/submissions/${id}`,
   REVIEW: (id) => `/api/submissions/${id}/review`,
 };
+export const API_ENDPOINTS_REWARD = {
+  GET_REWARDS_ITEMS: (pageIndex, pageSize, isActive, sortDir) =>
+    `/api/reward-items?pageIndex=${pageIndex}&pageSize=${pageSize}&isActive=${isActive}&sortDir=${sortDir}`,
+  GET_REWARDS_ITEM_BY_ID: (id) => `/api/reward-items/${id}`,
+  CREATE_REWARD_ITEM: "/api/reward-items",
+  UPDATE_REWARD_ITEM: (id) => `/api/reward-items/${id}`,
+  DELETE_REWARD_ITEM: (id) => `/api/reward-items/${id}`,
+};
