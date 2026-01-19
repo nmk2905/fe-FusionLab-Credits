@@ -1,5 +1,5 @@
 // src/pages/student/student.jsx
-import React from "react";
+import React, { useContext } from "react";
 import { Routes, Route } from "react-router-dom";
 
 import StudentLayout from "../../components/layout/StudentLayout";
@@ -12,12 +12,18 @@ import PointExchange from "../student/components/PointExchange";
 import StudentAccount from "../student/components/StudentAccount";
 import ProjectDetail from "../student/components/ProjectDetail";
 import MyGroupDetail from "../student/components/MyGroupDetail"; // Import it
+import { AuthContext } from "../../contexts/AuthContext";
 
 const StudentPageWrapper = ({ children }) => {
   return <StudentLayout>{children}</StudentLayout>;
 };
 
 export default function Student() {
+  const { loading } = useContext(AuthContext);
+  if (loading) {
+    return <Loading />;
+  }
+  
   return (
     <Routes>
       <Route

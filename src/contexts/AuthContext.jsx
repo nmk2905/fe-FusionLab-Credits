@@ -74,7 +74,7 @@ export const AuthProvider = ({ children }) => {
 
     // Gọi API để lấy thông tin user
     try {
-      const response = await userService.getCurrentUser();
+      const response = await userService.getCurrentUser(tokenInfo.userId);
       if (response.success) {
         setUser(response.data); // Cập nhật user từ API
       } else {

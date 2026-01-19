@@ -9,6 +9,8 @@ export default function ProjectDetail() {
   const { projectId } = useParams();
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
+  console.log(user);
+  
 
   const [project, setProject] = useState(null);
   const [members, setMembers] = useState([]);
