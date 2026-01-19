@@ -1,3 +1,4 @@
+
 // src/pages/student/components/TaskManagement.jsx
 import React, { useContext, useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
@@ -284,7 +285,7 @@ export default function TaskManagement() {
           animate={{ opacity: 1, y: 0 }}
           className="bg-white rounded-2xl shadow-lg overflow-hidden"
         >
-          <div className="bg-linear-to-r from-blue-600 to-indigo-600 px-6 py-4 text-white">
+          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 text-white">
             <h2 className="text-xl font-semibold flex items-center gap-3">
               <Calendar size={20} />
               Current Milestone Tasks

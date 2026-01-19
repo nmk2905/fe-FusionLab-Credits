@@ -95,4 +95,4 @@ export const API_ENDPOINTS_SUBMISSION = {
   UPDATE: (id) => `/api/submissions/${id}`,
   DELETE: (id) => `/api/submissions/${id}`,
   REVIEW: (id) => `/api/submissions/${id}/review`,
-}
+};
