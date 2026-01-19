@@ -1,4 +1,3 @@
-
 // src/pages/student/components/TaskManagement.jsx
 import React, { useContext, useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
@@ -14,11 +13,26 @@ import {
   RefreshCw,
   Calendar,
   Award,
+  Download,
 } from "lucide-react";
 import { AuthContext } from "../../../contexts/AuthContext";
 import taskService from "../../../services/apis/taskApi";
 import submissionApi from "../../../services/apis/submissionApi";
 import { useNavigate } from "react-router-dom";
+
+const STATUS_MAP = {
+  pending: "InProgress",
+  Pending: "InProgress",
+  string: "NotStarted",
+  submitted: "Submitted",
+  Submitted: "Submitted",
+  reviewed: "Reviewed",
+  Reviewed: "Reviewed",
+  late: "Late",
+  Late: "Late",
+  Approved: "Reviewed",
+  default: "NotStarted",
+};
 
 const STATUS_COLORS = {
   NotStarted: "bg-gray-100 text-gray-700",
@@ -51,17 +65,11 @@ export default function TaskManagement() {
   const [uploadingTaskId, setUploadingTaskId] = useState(null);
   const [uploadStatus, setUploadStatus] = useState({});
 
-  // ─── STEP 1: Determine current projectId ───────────────────────────────
+  // Get current project (temporary hardcoded)
   useEffect(() => {
     const fetchCurrentProject = async () => {
       if (!user?.id) return;
-
       try {
-        // TODO: Replace this with real membership check
-        // Example: const res = await projectMemberApi.getMyActiveProject(user.id);
-        // setProjectId(res.data?.projectId || null);
-
-        // Temporary fallback (remove when real logic is ready)
         setProjectId(15);
         console.log("[PROJECT] Using temporary projectId = 15");
       } catch (err) {
@@ -69,11 +77,10 @@ export default function TaskManagement() {
         setError("Cannot determine your current project");
       }
     };
-
     fetchCurrentProject();
   }, [user?.id]);
 
-  // ─── STEP 2: Load tasks + submissions ─────────────────────────────────
+  // Load tasks + submissions
   useEffect(() => {
     if (!projectId) return;
 
@@ -82,56 +89,43 @@ export default function TaskManagement() {
       setError(null);
 
       try {
-        // TODO: Replace with real active/current milestone logic
-        const milestoneId = 1; // ← CHANGE THIS when you have real milestone
+        const milestoneId = 7; // has tasks
+
         console.log(`[TASKS] Loading tasks for milestoneId = ${milestoneId}`);
 
         const tasksRes = await taskService.getTasksByMilestone(
           milestoneId,
-          1,    // pageIndex
-          50,   // pageSize
-          "Asc" // sortDir
+          1,
+          50,
+          "Asc"
         );
 
         console.log("[TASKS] Raw API response:", tasksRes);
 
-        // ─── Robust extraction of task array ───────────────────────────────
         let tasks = [];
 
-        if (tasksRes && typeof tasksRes === "object") {
-          // Common patterns we see in many APIs:
-          if (Array.isArray(tasksRes.data?.items)) {
-            tasks = tasksRes.data.items;
-            console.log("[TASKS] Found tasks in: response.data.items");
-          } else if (Array.isArray(tasksRes.data?.data)) {
-            tasks = tasksRes.data.data;
-            console.log("[TASKS] Found tasks in: response.data.data");
-          } else if (Array.isArray(tasksRes.data)) {
-            tasks = tasksRes.data;
-            console.log("[TASKS] Found tasks in: response.data (array)");
-          } else if (Array.isArray(tasksRes.items)) {
-            tasks = tasksRes.items;
-            console.log("[TASKS] Found tasks in: response.items");
-          } else if (Array.isArray(tasksRes)) {
-            tasks = tasksRes;
-            console.log("[TASKS] Found tasks in: response itself (array)");
-          }
+        if (tasksRes?.data && Array.isArray(tasksRes.data)) {
+          tasks = tasksRes.data;
+          console.log("[TASKS] Tasks found in response.data (array)");
+        } else if (Array.isArray(tasksRes)) {
+          tasks = tasksRes;
+        } else if (tasksRes?.rawResponse?.data && Array.isArray(tasksRes.rawResponse.data)) {
+          tasks = tasksRes.rawResponse.data;
         }
 
         console.log(`[TASKS] Extracted ${tasks.length} tasks`);
-        console.log("[TASKS] First few tasks (if any):", tasks.slice(0, 2));
 
-        setTasksByMilestone({ [milestoneId]: tasks });
+        setTasksByMilestone((prev) => ({
+          ...prev,
+          [milestoneId]: tasks,
+        }));
 
         if (tasks.length > 0) {
-          console.log("[SUBMISSIONS] Starting to load submissions for task IDs...");
           await loadSubmissionsForTasks(tasks.map((t) => t.id));
-        } else {
-          console.log("[SUBMISSIONS] No tasks → skipping submission check");
         }
       } catch (err) {
         console.error("[TASKS] Loading failed:", err);
-        setError("Failed to load tasks. Please try again later.");
+        setError("Failed to load tasks.");
       } finally {
         setLoading(false);
       }
@@ -141,16 +135,12 @@ export default function TaskManagement() {
   }, [projectId]);
 
   const loadSubmissionsForTasks = async (taskIds) => {
-    if (!user?.id || taskIds.length === 0) {
-      console.log("[SUBMISSIONS] No user or no tasks → skip");
-      return;
-    }
+    if (!user?.id || taskIds.length === 0) return;
 
     console.log(`[SUBMISSIONS] Checking ${taskIds.length} task(s)`);
 
     try {
       for (const taskId of taskIds) {
-        console.log(`[SUBMISSION] Fetching for taskId = ${taskId}`);
         const res = await submissionApi.getSubmissions({
           userId: user.id,
           taskId,
@@ -159,31 +149,39 @@ export default function TaskManagement() {
 
         console.log(`[SUBMISSION] Response for task ${taskId}:`, res);
 
-        const subs = res?.data?.items || res?.data || [];
+        // Robust extraction (similar to tasks)
+        let subs = [];
+        if (res?.data && Array.isArray(res.data)) {
+          subs = res.data;
+        } else if (Array.isArray(res)) {
+          subs = res;
+        }
+
         if (subs.length > 0) {
-          console.log(`[SUBMISSION] Found submission for task ${taskId}`);
+          console.log(`[SUBMISSION] Found for task ${taskId}`);
           setSubmissions((prev) => ({ ...prev, [taskId]: subs[0] }));
-        } else {
-          console.log(`[SUBMISSION] No submission found for task ${taskId}`);
         }
       }
     } catch (err) {
-      console.warn("[SUBMISSIONS] Failed to load some submissions", err);
+      console.warn("[SUBMISSIONS] Failed to load", err);
     }
   };
 
-  // ─── File upload logic ────────────────────────────────────────────────
   const handleFileChange = (e, taskId) => {
     const file = e.target.files?.[0];
     if (file) {
       setSelectedFile(file);
       setUploadingTaskId(taskId);
-      console.log(`[UPLOAD] Selected file for task ${taskId}:`, file.name);
+      console.log(`[FILE] Selected for task ${taskId}: ${file.name}`);
     }
+    e.target.value = ""; // Reset for re-select
   };
 
   const handleSubmitTask = async (taskId) => {
-    if (!selectedFile || uploadingTaskId !== taskId) return;
+    if (!selectedFile || uploadingTaskId !== taskId) {
+      console.log("[UPLOAD] Blocked: no file or wrong task");
+      return;
+    }
 
     setUploadStatus((prev) => ({
       ...prev,
@@ -191,33 +189,35 @@ export default function TaskManagement() {
     }));
 
     try {
-      console.log(`[UPLOAD] Starting submission for task ${taskId}`);
+      console.log(`[UPLOAD] Starting for task ${taskId}`);
       const res = await submissionApi.createSubmission({
         taskId,
         userId: user.id,
         file: selectedFile,
       });
 
-      console.log("[UPLOAD] Submit response:", res);
+      console.log("[UPLOAD] Response:", res);
 
-      if (res.success) {
+      if (res.success || res.status === 201) {
+        const newSubmission = res.data || res; // Adjust based on wrapper
+        setSubmissions((prev) => ({ ...prev, [taskId]: newSubmission }));
+
         setUploadStatus((prev) => ({
           ...prev,
           [taskId]: { loading: false, success: true, message: "Submitted successfully!" },
         }));
-        await loadSubmissionsForTasks([taskId]);
+
+        setSelectedFile(null);
+        setUploadingTaskId(null);
       } else {
         throw new Error(res.message || "Upload failed");
       }
     } catch (err) {
-      console.error("[UPLOAD] Submit failed:", err);
+      console.error("[UPLOAD] Failed:", err);
       setUploadStatus((prev) => ({
         ...prev,
         [taskId]: { loading: false, success: false, message: err.message || "Failed to submit" },
       }));
-    } finally {
-      setSelectedFile(null);
-      setUploadingTaskId(null);
     }
   };
 
@@ -225,7 +225,6 @@ export default function TaskManagement() {
     return Object.values(tasksByMilestone).flat();
   }, [tasksByMilestone]);
 
-  // ─── RENDERING ────────────────────────────────────────────────────────
   if (!projectId) {
     return (
       <div className="p-8 text-center text-gray-600">
@@ -294,16 +293,16 @@ export default function TaskManagement() {
 
           <div className="divide-y divide-gray-100">
             {allTasks.map((task) => {
+              const mappedStatus = STATUS_MAP[task.status] || "NotStarted";
               const submission = submissions[task.id];
-              const status = submission?.status || "NotStarted";
-              const uploadInfo = uploadStatus[task.id];
+              const status = submission?.status || mappedStatus;
+              const isUploading = uploadStatus[task.id]?.loading;
 
               return (
                 <div
                   key={task.id}
                   className="p-6 hover:bg-gray-50 transition-colors"
                 >
-                  {/* ... rest of the task card rendering remains the same ... */}
                   <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
                     <div className="flex-1">
                       <div className="flex items-start gap-4">
@@ -312,24 +311,24 @@ export default function TaskManagement() {
                         </div>
                         <div>
                           <h3 className="font-semibold text-lg text-gray-900">
-                            {task.title || "Untitled Task"}
+                            {task.label || "Untitled Task"}
                           </h3>
                           <p className="text-gray-600 mt-1 line-clamp-2">
                             {task.description || "No description provided."}
                           </p>
                           <div className="flex flex-wrap gap-4 mt-4 text-sm">
                             <div className="flex items-center gap-1.5">
-                              <Award size={16} className="text-amber-600" />
-                              <span>{task.maxScore || "?"} points</span>
-                            </div>
-                            <div className="flex items-center gap-1.5">
                               <Clock size={16} />
                               <span>
                                 Due:{" "}
-                                {task.deadline
-                                  ? new Date(task.deadline).toLocaleDateString()
+                                {task.dueDate
+                                  ? new Date(task.dueDate).toLocaleDateString()
                                   : "No deadline"}
                               </span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <Award size={16} className="text-amber-600" />
+                              <span>Weight: {task.weight || "?"}</span>
                             </div>
                           </div>
                         </div>
@@ -340,11 +339,82 @@ export default function TaskManagement() {
                       <span
                         className={`px-4 py-1.5 rounded-full text-sm font-medium ${STATUS_COLORS[status]}`}
                       >
-                        {status === "NotStarted" ? "To Do" : status}
+                        {status}
                       </span>
 
-                      {/* Upload / Status UI - same as before */}
-                      {/* ... (keeping original upload logic here) ... */}
+                      {submission ? (
+                        <div className="mt-2 text-sm text-gray-600 text-right">
+                          <p>
+                            Submitted: {new Date(submission.submittedAt).toLocaleString()}
+                          </p>
+                          <p>
+                            Status: <strong>{submission.status}</strong>
+                          </p>
+                          {submission.grade !== null && (
+                            <p>Grade: {submission.grade}</p>
+                          )}
+                          {submission.fileUrl && (
+                            <a
+                              href={submission.fileUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:underline flex items-center gap-1 justify-end mt-1"
+                            >
+                              <Download size={16} />
+                              View file
+                            </a>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="mt-3 text-right">
+                          {selectedFile && uploadingTaskId === task.id && (
+                            <div className="mb-2 text-sm text-gray-600 flex items-center justify-end gap-2">
+                              <span className="truncate max-w-[180px]">{selectedFile.name}</span>
+                              <button
+                                onClick={() => {
+                                  setSelectedFile(null);
+                                  setUploadingTaskId(null);
+                                }}
+                                className="text-red-500 hover:text-red-700"
+                              >
+                                <X size={16} />
+                              </button>
+                            </div>
+                          )}
+
+                          <label className="cursor-pointer inline-flex items-center gap-2 text-blue-600 hover:text-blue-800">
+                            <Upload size={18} />
+                            <span>Choose file</span>
+                            <input
+                              type="file"
+                              className="hidden"
+                              onChange={(e) => handleFileChange(e, task.id)}
+                            />
+                          </label>
+
+                          {selectedFile && uploadingTaskId === task.id && (
+                            <button
+                              onClick={() => handleSubmitTask(task.id)}
+                              disabled={isUploading}
+                              className={`ml-3 px-4 py-1.5 rounded text-white text-sm font-medium ${
+                                isUploading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+                              }`}
+                            >
+                              {isUploading ? "Uploading..." : "Submit"}
+                            </button>
+                          )}
+
+                          {uploadStatus[task.id]?.message && (
+                            <p
+                              className={`mt-2 text-sm ${
+                                uploadStatus[task.id]?.success ? "text-green-600" : "text-red-600"
+                              }`}
+                            >
+                              {uploadStatus[task.id].message}
+                            </p>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
