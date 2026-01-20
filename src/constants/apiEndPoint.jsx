@@ -29,6 +29,8 @@ export const API_ENDPOINTS_PROJECT = {
   GET_PROJECT_BY_MENTOR_ID: (mentorId, pageSize, pageIndex, sortDir) =>
     `/api/projects/mentor/${mentorId}?pageIndex=${pageIndex}&pageSize=${pageSize}&sortDir=${sortDir}`,
   ADD_PROJECT: "/api/projects",
+  GET_USER_HISTORY: (userId, pageIndex = 1, pageSize = 20, sortColumn = "Id", sortDir = "Desc") =>
+    `/api/projects/history/${userId}?pageIndex=${pageIndex}&pageSize=${pageSize}&sortColumn=${sortColumn}&sortDir=${sortDir}`,
 };
 
 export const API_ENDPOINTS_SEMESTER = {

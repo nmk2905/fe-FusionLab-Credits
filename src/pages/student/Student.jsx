@@ -13,6 +13,7 @@ import StudentAccount from "../student/components/StudentAccount";
 import ProjectDetail from "../student/components/ProjectDetail";
 import MyGroupDetail from "../student/components/MyGroupDetail"; // Import it
 import { AuthContext } from "../../contexts/AuthContext";
+import ProjectHistory           from "../student/components/ProjectHistory";   // ← ADD THIS
 
 const StudentPageWrapper = ({ children }) => {
   return <StudentLayout>{children}</StudentLayout>;
@@ -108,6 +109,7 @@ export default function Student() {
           </StudentPageWrapper>
         }
       />
+      <Route path="group-management/history" element={<StudentPageWrapper><ProjectHistory /></StudentPageWrapper>} />
     </Routes>
   );
 }
