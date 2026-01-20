@@ -14,6 +14,8 @@ import {
   Calendar,
   Award,
   Download,
+  Trash2,
+  Edit,
 } from "lucide-react";
 import { AuthContext } from "../../../contexts/AuthContext";
 import taskService from "../../../services/apis/taskApi";
@@ -106,7 +108,6 @@ export default function TaskManagement() {
 
         if (tasksRes?.data && Array.isArray(tasksRes.data)) {
           tasks = tasksRes.data;
-          console.log("[TASKS] Tasks found in response.data (array)");
         } else if (Array.isArray(tasksRes)) {
           tasks = tasksRes;
         } else if (tasksRes?.rawResponse?.data && Array.isArray(tasksRes.rawResponse.data)) {
@@ -144,22 +145,35 @@ export default function TaskManagement() {
         const res = await submissionApi.getSubmissions({
           userId: user.id,
           taskId,
-          pageSize: 1,
+          pageIndex: 1,
+          pageSize: 10,
+          sortColumn: "SubmittedAt",
+          sortDir: "Desc",
         });
 
         console.log(`[SUBMISSION] Response for task ${taskId}:`, res);
 
-        // Robust extraction (similar to tasks)
         let subs = [];
         if (res?.data && Array.isArray(res.data)) {
           subs = res.data;
         } else if (Array.isArray(res)) {
           subs = res;
+        } else if (res?.rawResponse?.data && Array.isArray(res.rawResponse.data)) {
+          subs = res.rawResponse.data;
         }
 
         if (subs.length > 0) {
-          console.log(`[SUBMISSION] Found for task ${taskId}`);
-          setSubmissions((prev) => ({ ...prev, [taskId]: subs[0] }));
+          const sorted = subs.sort((a, b) =>
+            new Date(b.submittedAt) - new Date(a.submittedAt)
+          );
+          const latest = sorted[0];
+
+          console.log(
+            `[SUBMISSION] Latest for task ${taskId}: ` +
+              `submittedAt=${latest.submittedAt}, status=${latest.status}, version=${latest.version || "n/a"}`
+          );
+
+          setSubmissions((prev) => ({ ...prev, [taskId]: latest }));
         }
       }
     } catch (err) {
@@ -174,14 +188,11 @@ export default function TaskManagement() {
       setUploadingTaskId(taskId);
       console.log(`[FILE] Selected for task ${taskId}: ${file.name}`);
     }
-    e.target.value = ""; // Reset for re-select
+    e.target.value = ""; // Reset input
   };
 
   const handleSubmitTask = async (taskId) => {
-    if (!selectedFile || uploadingTaskId !== taskId) {
-      console.log("[UPLOAD] Blocked: no file or wrong task");
-      return;
-    }
+    if (!selectedFile || uploadingTaskId !== taskId) return;
 
     setUploadStatus((prev) => ({
       ...prev,
@@ -189,18 +200,19 @@ export default function TaskManagement() {
     }));
 
     try {
-      console.log(`[UPLOAD] Starting for task ${taskId}`);
+      console.log(`[UPLOAD] Creating new submission for task ${taskId}`);
       const res = await submissionApi.createSubmission({
         taskId,
         userId: user.id,
         file: selectedFile,
       });
 
-      console.log("[UPLOAD] Response:", res);
-
       if (res.success || res.status === 201) {
-        const newSubmission = res.data || res; // Adjust based on wrapper
-        setSubmissions((prev) => ({ ...prev, [taskId]: newSubmission }));
+        const newSubmission = res.data || res;
+        setSubmissions((prev) => ({
+          ...prev,
+          [taskId]: newSubmission,
+        }));
 
         setUploadStatus((prev) => ({
           ...prev,
@@ -217,6 +229,91 @@ export default function TaskManagement() {
       setUploadStatus((prev) => ({
         ...prev,
         [taskId]: { loading: false, success: false, message: err.message || "Failed to submit" },
+      }));
+    }
+  };
+
+  const handleUpdateSubmission = async (taskId) => {
+    const submission = submissions[taskId];
+    if (!submission?.id || !selectedFile || uploadingTaskId !== taskId) return;
+
+    setUploadStatus((prev) => ({
+      ...prev,
+      [taskId]: { loading: true, success: false, message: "" },
+    }));
+
+    try {
+      console.log(`[UPDATE] Updating submission ${submission.id} for task ${taskId}`);
+
+      // Assuming backend accepts PUT with multipart/form-data and file replacement
+      const formData = new FormData();
+      formData.append("File", selectedFile);
+      // You can add more fields if backend requires them, e.g.:
+      // formData.append("Status", "Submitted");
+      // formData.append("Feedback", "");
+
+      const res = await submissionApi.updateSubmission(submission.id, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      if (res.success || res.status === 200) {
+        const updatedSubmission = res.data || res;
+
+        setSubmissions((prev) => ({
+          ...prev,
+          [taskId]: updatedSubmission,
+        }));
+
+        setUploadStatus((prev) => ({
+          ...prev,
+          [taskId]: { loading: false, success: true, message: "Submission updated successfully!" },
+        }));
+
+        setSelectedFile(null);
+        setUploadingTaskId(null);
+      } else {
+        throw new Error(res.message || "Update failed");
+      }
+    } catch (err) {
+      console.error("[UPDATE] Failed:", err);
+      setUploadStatus((prev) => ({
+        ...prev,
+        [taskId]: { loading: false, success: false, message: err.message || "Failed to update submission" },
+      }));
+    }
+  };
+
+  const handleDeleteSubmission = async (taskId) => {
+    const submission = submissions[taskId];
+    if (!submission?.id) return;
+
+    if (!window.confirm("Are you sure you want to delete this submission?")) return;
+
+    try {
+      console.log(`[DELETE] Deleting submission ${submission.id} for task ${taskId}`);
+      await submissionApi.deleteSubmission(submission.id);
+
+      // Remove from local state
+      setSubmissions((prev) => {
+        const copy = { ...prev };
+        delete copy[taskId];
+        return copy;
+      });
+
+      setUploadStatus((prev) => ({
+        ...prev,
+        [taskId]: { loading: false, success: true, message: "Submission deleted" },
+      }));
+
+      setSelectedFile(null);
+      setUploadingTaskId(null);
+    } catch (err) {
+      console.error("[DELETE] Failed:", err);
+      setUploadStatus((prev) => ({
+        ...prev,
+        [taskId]: { loading: false, success: false, message: "Failed to delete submission" },
       }));
     }
   };
@@ -297,12 +394,10 @@ export default function TaskManagement() {
               const submission = submissions[task.id];
               const status = submission?.status || mappedStatus;
               const isUploading = uploadStatus[task.id]?.loading;
+              const hasFileSelected = !!selectedFile && uploadingTaskId === task.id;
 
               return (
-                <div
-                  key={task.id}
-                  className="p-6 hover:bg-gray-50 transition-colors"
-                >
+                <div key={task.id} className="p-6 hover:bg-gray-50 transition-colors">
                   <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
                     <div className="flex-1">
                       <div className="flex items-start gap-4">
@@ -335,7 +430,7 @@ export default function TaskManagement() {
                       </div>
                     </div>
 
-                    <div className="flex flex-col items-end gap-4 min-w-[220px]">
+                    <div className="flex flex-col items-end gap-4 min-w-[240px]">
                       <span
                         className={`px-4 py-1.5 rounded-full text-sm font-medium ${STATUS_COLORS[status]}`}
                       >
@@ -343,7 +438,7 @@ export default function TaskManagement() {
                       </span>
 
                       {submission ? (
-                        <div className="mt-2 text-sm text-gray-600 text-right">
+                        <div className="w-full text-sm text-gray-600 text-right space-y-2">
                           <p>
                             Submitted: {new Date(submission.submittedAt).toLocaleString()}
                           </p>
@@ -358,18 +453,81 @@ export default function TaskManagement() {
                               href={submission.fileUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-blue-600 hover:underline flex items-center gap-1 justify-end mt-1"
+                              className="text-blue-600 hover:underline flex items-center gap-1 justify-end"
                             >
                               <Download size={16} />
                               View file
                             </a>
                           )}
+
+                          <div className="flex flex-col gap-2 mt-3">
+                            {hasFileSelected ? (
+                              <div className="flex items-center justify-end gap-3">
+                                <span className="text-gray-700 truncate max-w-[180px]">
+                                  {selectedFile.name}
+                                </span>
+                                <button
+                                  onClick={() => {
+                                    setSelectedFile(null);
+                                    setUploadingTaskId(null);
+                                  }}
+                                  className="text-red-600 hover:text-red-800"
+                                >
+                                  <X size={18} />
+                                </button>
+                                <button
+                                  onClick={() => handleUpdateSubmission(task.id)}
+                                  disabled={isUploading}
+                                  className={`px-4 py-1.5 rounded text-white text-sm font-medium flex items-center gap-2 ${
+                                    isUploading
+                                      ? "bg-gray-400 cursor-not-allowed"
+                                      : "bg-indigo-600 hover:bg-indigo-700"
+                                  }`}
+                                >
+                                  <Edit size={16} />
+                                  {isUploading ? "Updating..." : "Update"}
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="flex flex-wrap justify-end gap-3">
+                                <label className="cursor-pointer inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-800">
+                                  <Upload size={18} />
+                                  <span>Re-submit</span>
+                                  <input
+                                    type="file"
+                                    className="hidden"
+                                    onChange={(e) => handleFileChange(e, task.id)}
+                                  />
+                                </label>
+
+                                <button
+                                  onClick={() => handleDeleteSubmission(task.id)}
+                                  className="inline-flex items-center gap-2 text-red-600 hover:text-red-800"
+                                >
+                                  <Trash2 size={18} />
+                                  <span>Delete</span>
+                                </button>
+                              </div>
+                            )}
+                          </div>
+
+                          {uploadStatus[task.id]?.message && (
+                            <p
+                              className={`text-sm ${
+                                uploadStatus[task.id]?.success ? "text-green-600" : "text-red-600"
+                              }`}
+                            >
+                              {uploadStatus[task.id].message}
+                            </p>
+                          )}
                         </div>
                       ) : (
                         <div className="mt-3 text-right">
-                          {selectedFile && uploadingTaskId === task.id && (
-                            <div className="mb-2 text-sm text-gray-600 flex items-center justify-end gap-2">
-                              <span className="truncate max-w-[180px]">{selectedFile.name}</span>
+                          {hasFileSelected && (
+                            <div className="mb-3 flex items-center justify-end gap-2">
+                              <span className="truncate max-w-[180px] text-gray-700">
+                                {selectedFile.name}
+                              </span>
                               <button
                                 onClick={() => {
                                   setSelectedFile(null);
@@ -392,7 +550,7 @@ export default function TaskManagement() {
                             />
                           </label>
 
-                          {selectedFile && uploadingTaskId === task.id && (
+                          {hasFileSelected && (
                             <button
                               onClick={() => handleSubmitTask(task.id)}
                               disabled={isUploading}
