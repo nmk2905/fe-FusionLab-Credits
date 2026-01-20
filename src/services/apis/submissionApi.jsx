@@ -85,7 +85,11 @@ const submissionApi = {
    * @param {Object} data
    */
   async updateSubmission(id, data) {
-    return apiUtils.put(SUBMISSION_ENDPOINTS.UPDATE(id), data);
+    return apiUtils.put(SUBMISSION_ENDPOINTS.UPDATE(id), data, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
   },
 
   /**
