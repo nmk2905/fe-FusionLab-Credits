@@ -286,7 +286,7 @@ const CreateRewards = () => {
               <div className="flex justify-end space-x-4">
                 <button
                   type="button"
-                  onClick={() => navigate("/finance/view-rewards")}
+                  onClick={() => navigate("/finance-officer/view-rewards")}
                   className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
                   disabled={loading}
                 >

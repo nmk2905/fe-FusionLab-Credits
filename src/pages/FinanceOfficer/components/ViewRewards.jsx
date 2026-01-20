@@ -1,4 +1,4 @@
-// src/pages/Finance/ViewRewards.jsx
+// src/pages/FinanceOfficer/components/ViewRewards.jsx
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -7,13 +7,12 @@ import {
   Trash2,
   PlusCircle,
   Search,
-  Filter,
-  ChevronLeft,
-  ChevronRight,
   RefreshCw,
   Power,
 } from "lucide-react";
 import rewardItemService from "../../../services/apis/rewardItemApi";
+import DeleteConfirmationPopup from "./DeleteConfirmationPopup";
+import UpdateRewardPopup from "./UpdateRewardPopup"; // Import popup update
 
 // Debounce hook
 const useDebounce = (value, delay) => {
@@ -37,6 +36,20 @@ const ViewRewards = () => {
   const [filteredRewards, setFilteredRewards] = useState([]);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  // Delete popup state
+  const [deletePopup, setDeletePopup] = useState({
+    isOpen: false,
+    rewardId: null,
+    rewardName: "",
+    isLoading: false,
+  });
+
+  // Update popup state
+  const [updatePopup, setUpdatePopup] = useState({
+    isOpen: false,
+    rewardId: null,
+  });
 
   // Filters & Pagination
   const [searchTerm, setSearchTerm] = useState("");
@@ -95,7 +108,7 @@ const ViewRewards = () => {
       filtered = filtered.filter(
         (r) =>
           r.name?.toLowerCase().includes(term) ||
-          r.description?.toLowerCase().includes(term)
+          r.description?.toLowerCase().includes(term),
       );
     }
 
@@ -107,22 +120,73 @@ const ViewRewards = () => {
     setCurrentPage(1);
   };
 
-  const handleDeleteReward = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this reward?")) return;
-    setLoading(true);
+  // Open delete popup
+  const handleOpenDeletePopup = (id, name) => {
+    setDeletePopup({
+      isOpen: true,
+      rewardId: id,
+      rewardName: name,
+      isLoading: false,
+    });
+  };
+
+  // Close delete popup
+  const handleCloseDeletePopup = () => {
+    if (!deletePopup.isLoading) {
+      setDeletePopup({
+        isOpen: false,
+        rewardId: null,
+        rewardName: "",
+        isLoading: false,
+      });
+    }
+  };
+
+  // Confirm delete
+  const handleConfirmDelete = async () => {
+    if (!deletePopup.rewardId) return;
+
+    setDeletePopup((prev) => ({ ...prev, isLoading: true }));
+
     try {
-      const result = await rewardItemService.deleteRewardItem(id);
+      const result = await rewardItemService.deleteRewardItem(
+        deletePopup.rewardId,
+      );
       if (result?.success) {
         setSuccess("Reward deleted successfully!");
         fetchRewards();
+        handleCloseDeletePopup();
       } else {
         setError("Failed to delete reward");
       }
     } catch (err) {
+      console.error("Error deleting reward:", err);
       setError("Failed to delete reward. Please try again.");
     } finally {
-      setLoading(false);
+      setDeletePopup((prev) => ({ ...prev, isLoading: false }));
     }
+  };
+
+  // Open update popup
+  const handleOpenUpdatePopup = (id) => {
+    setUpdatePopup({
+      isOpen: true,
+      rewardId: id,
+    });
+  };
+
+  // Close update popup
+  const handleCloseUpdatePopup = () => {
+    setUpdatePopup({
+      isOpen: false,
+      rewardId: null,
+    });
+  };
+
+  // Handle update success
+  const handleUpdateSuccess = () => {
+    setSuccess("Reward updated successfully!");
+    fetchRewards();
   };
 
   const handleToggleStatus = async (id, currentStatus) => {
@@ -130,11 +194,11 @@ const ViewRewards = () => {
     try {
       const result = await rewardItemService.updateRewardItemStatus(
         id,
-        !currentStatus
+        !currentStatus,
       );
       if (result?.success) {
         setSuccess(
-          `Reward ${!currentStatus ? "activated" : "deactivated"} successfully!`
+          `Reward ${!currentStatus ? "activated" : "deactivated"} successfully!`,
         );
         fetchRewards();
       } else {
@@ -208,7 +272,7 @@ const ViewRewards = () => {
           disabled={currentPage === 1}
           className="p-2 rounded border border-gray-300 disabled:opacity-50 hover:bg-gray-50"
         >
-          <ChevronLeft size={16} />
+          &lt;
         </button>
 
         {start > 1 && (
@@ -236,7 +300,7 @@ const ViewRewards = () => {
             >
               {page}
             </button>
-          )
+          ),
         )}
 
         {end < totalPages && (
@@ -256,7 +320,7 @@ const ViewRewards = () => {
           disabled={currentPage === totalPages}
           className="p-2 rounded border border-gray-300 disabled:opacity-50 hover:bg-gray-50"
         >
-          <ChevronRight size={16} />
+          &gt;
         </button>
       </div>
     );
@@ -448,10 +512,9 @@ const ViewRewards = () => {
                             >
                               <Eye size={18} />
                             </button>
+                            {/* Updated edit button */}
                             <button
-                              onClick={() =>
-                                navigate(`/finance/edit-rewards/${reward.id}`)
-                              }
+                              onClick={() => handleOpenUpdatePopup(reward.id)}
                               className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
                               title="Edit"
                             >
@@ -476,7 +539,9 @@ const ViewRewards = () => {
                               />
                             </button>
                             <button
-                              onClick={() => handleDeleteReward(reward.id)}
+                              onClick={() =>
+                                handleOpenDeletePopup(reward.id, reward.name)
+                              }
                               className="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
                               title="Delete"
                             >
@@ -512,6 +577,23 @@ const ViewRewards = () => {
             </>
           )}
         </div>
+
+        {/* Delete Confirmation Popup */}
+        <DeleteConfirmationPopup
+          isOpen={deletePopup.isOpen}
+          onClose={handleCloseDeletePopup}
+          onConfirm={handleConfirmDelete}
+          itemName={deletePopup.rewardName}
+          isLoading={deletePopup.isLoading}
+        />
+
+        {/* Update Reward Popup */}
+        <UpdateRewardPopup
+          isOpen={updatePopup.isOpen}
+          onClose={handleCloseUpdatePopup}
+          rewardId={updatePopup.rewardId}
+          onUpdateSuccess={handleUpdateSuccess}
+        />
       </div>
     </div>
   );
