@@ -53,7 +53,7 @@ export default function Login() {
       Staff: "/staff",
       User: "/student/dashboard",
       Mentor: "/mentor/view-projects",
-      Finance: "/finance",
+      FinanceOfficer: "/finance-officer/view-rewards",
     };
 
     const path = redirectPaths[role] || "/";
@@ -92,8 +92,6 @@ export default function Login() {
     try {
       const result = await authService.login(loginData);
       if (result.success) {
-        showNotification("Login successful!", "success");
-
         const tokenInfo = validateToken(result.data.accessToken);
         const token = result?.rawResponse?.data.accessToken;
         if (!tokenInfo) return;

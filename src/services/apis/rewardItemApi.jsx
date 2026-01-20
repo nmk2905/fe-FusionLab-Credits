@@ -23,7 +23,7 @@ const rewardItemService = {
       pageIndex,
       pageSize,
       isActive,
-      sortDir
+      sortDir,
     );
 
     return apiUtils.get(endpoint);
@@ -36,12 +36,15 @@ const rewardItemService = {
   async createRewardItem(rewardItemData) {
     return apiUtils.post(
       API_ENDPOINTS_REWARD.CREATE_REWARD_ITEM,
-      rewardItemData
+      rewardItemData,
     );
   },
 
-  async updateRewardItem(id) {
-    return apiUtils.put(API_ENDPOINTS_REWARD.UPDATE_REWARD_ITEM(id));
+  async updateRewardItem(id, rewardItemData) {
+    return apiUtils.put(
+      API_ENDPOINTS_REWARD.UPDATE_REWARD_ITEM(id),
+      rewardItemData,
+    );
   },
   async deleteRewardItem(id) {
     return apiUtils.delete(API_ENDPOINTS_REWARD.DELETE_REWARD_ITEM(id));
