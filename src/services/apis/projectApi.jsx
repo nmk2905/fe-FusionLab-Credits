@@ -21,6 +21,11 @@ const projectService = {
   async addProject(projectData) {
     return apiUtils.post(API_ENDPOINTS_PROJECT.ADD_PROJECT, projectData);
   },
+  async getUserProjectHistory(userId, { pageIndex = 1, pageSize = 20, sortColumn = "Id", sortDir = "Desc" } = {}) {
+  return apiUtils.get(
+    API_ENDPOINTS_PROJECT.GET_USER_HISTORY(userId, pageIndex, pageSize, sortColumn, sortDir)
+  );}
 };
+
 
 export default projectService;
