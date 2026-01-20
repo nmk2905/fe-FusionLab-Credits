@@ -98,3 +98,13 @@ export const API_ENDPOINTS_SUBMISSION = {
   DELETE: (id) => `/api/submissions/${id}`,
   REVIEW: (id) => `/api/submissions/${id}/review`,
 };
+
+export const API_ENDPOINTS_REDEEM = {
+  GET_ALL: "/api/redeemrequests",
+  CREATE: "/api/redeemrequests",
+  GET_BY_USER: (userId) => `/api/redeemrequests/by-user/${userId}`,
+  GET_BY_ID: (id) => `/api/redeemrequests/${id}`,
+  DELETE: (id) => `/api/redeemrequests/${id}`,
+  UPDATE_STATUS: (id) => `/api/redeemrequests/${id}/status`,
+  MARK_COLLECTED: (id) => `/api/redeemrequests/${id}/collect`,
+};
