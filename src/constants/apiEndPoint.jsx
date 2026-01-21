@@ -108,3 +108,11 @@ export const API_ENDPOINTS_REDEEM = {
   UPDATE_STATUS: (id) => `/api/redeemrequests/${id}/status`,
   MARK_COLLECTED: (id) => `/api/redeemrequests/${id}/collect`,
 };
+
+export const API_ENDPOINTS_WALLET = {
+  GET_ALL: (pageIndex = 1, pageSize = 10, keyword = "") =>
+    `/api/Wallets?pageIndex=${pageIndex}&pageSize=${pageSize}${keyword ? `&keyword=${encodeURIComponent(keyword)}` : ""}`,
+  GET_BY_USER: (userId) => `/api/Wallets/user/${userId}`,
+  GET_BALANCE: (userId) => `/api/Wallets/user/${userId}/balance`,
+  DELETE: (id) => `/api/Wallets/${id}`,
+};
