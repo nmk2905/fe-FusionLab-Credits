@@ -4,6 +4,9 @@ import { apiUtils } from "../../utils/apiUtils";
 import { API_ENDPOINTS_REDEEM } from "../../constants/apiEndPoint";
 
 const redeemRequestService = {
+  /**
+   * Get paginated list of redeem requests with filters
+   */
   async getAllRedeemRequests({
     pageIndex = 1,
     pageSize = 10,
@@ -15,22 +18,31 @@ const redeemRequestService = {
     sortColumn = "Id",
     sortDir = "Asc",
   } = {}) {
-    let url = `/api/redeemrequests?pageIndex=${pageIndex}&pageSize=${pageSize}&sortColumn=${sortColumn}&sortDir=${sortDir}`;
-
-    if (keyword) url += `&keyword=${encodeURIComponent(keyword)}`;
-    if (status) url += `&status=${encodeURIComponent(status)}`;
-    if (userId !== null && userId !== undefined) url += `&userId=${userId}`;
-    if (rewardItemId !== null && rewardItemId !== undefined) url += `&rewardItemId=${rewardItemId}`;
-    if (collected !== null && collected !== undefined) url += `&collected=${collected}`;
-
+    const url = API_ENDPOINTS_REDEEM.GET_ALL({
+      pageIndex,
+      pageSize,
+      keyword,
+      status,
+      userId,
+      rewardItemId,
+      collected,
+      sortColumn,
+      sortDir,
+    });
     return apiUtils.get(url);
   },
 
+  /**
+   * Create a new redeem request
+   */
   async createRedeemRequest({ quantity, userId, rewardItemId }) {
     const payload = { quantity, userId, rewardItemId };
-    return apiUtils.post("/api/redeemrequests", payload);
+    return apiUtils.post(API_ENDPOINTS_REDEEM.CREATE(), payload);
   },
 
+  /**
+   * Get paginated redeem requests for a specific user
+   */
   async getRedeemRequestsByUser(
     userId,
     {
@@ -42,28 +54,43 @@ const redeemRequestService = {
       sortDir = "Asc",
     } = {}
   ) {
-    let url = `/api/redeemrequests/by-user/${userId}?pageIndex=${pageIndex}&pageSize=${pageSize}&sortColumn=${sortColumn}&sortDir=${sortDir}`;
-
-    if (status) url += `&status=${encodeURIComponent(status)}`;
-    if (collected !== null && collected !== undefined) url += `&collected=${collected}`;
-
+    const url = API_ENDPOINTS_REDEEM.GET_BY_USER(userId, {
+      pageIndex,
+      pageSize,
+      status,
+      collected,
+      sortColumn,
+      sortDir,
+    });
     return apiUtils.get(url);
   },
 
+  /**
+   * Get single redeem request by ID
+   */
   async getRedeemRequestById(id) {
-    return apiUtils.get(`/api/redeemrequests/${id}`);
+    return apiUtils.get(API_ENDPOINTS_REDEEM.GET_BY_ID(id));
   },
 
+  /**
+   * Delete a redeem request
+   */
   async deleteRedeemRequest(id) {
-    return apiUtils.delete(`/api/redeemrequests/${id}`);
+    return apiUtils.delete(API_ENDPOINTS_REDEEM.DELETE(id));
   },
 
+  /**
+   * Update status of a redeem request (admin/finance)
+   */
   async updateRedeemRequestStatus(id, status) {
-    return apiUtils.put(`/api/redeemrequests/${id}/status`, { status });
+    return apiUtils.put(API_ENDPOINTS_REDEEM.UPDATE_STATUS(id), { status });
   },
 
+  /**
+   * Mark request as collected (usually by user or admin)
+   */
   async markAsCollected(id) {
-    return apiUtils.put(`/api/redeemrequests/${id}/collect`);
+    return apiUtils.put(API_ENDPOINTS_REDEEM.MARK_COLLECTED(id));
   },
 };
 

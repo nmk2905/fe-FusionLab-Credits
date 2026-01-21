@@ -86,16 +86,20 @@ export const API_ENDPOINTS_REWARD = {
 };
 // constants/apiEndPoint.js
 export const API_ENDPOINTS_SUBMISSION = {
-  GET_ALL_SUBMISSIONS: (pageIndex = 1, pageSize = 10, userId = "", taskId = "", sortColumn = "Id", sortDir = "Asc") =>
+  GET_ALL: (pageIndex = 1, pageSize = 10, userId = "", taskId = "", sortColumn = "Id", sortDir = "Asc") =>
     `/api/submissions?pageIndex=${pageIndex}&pageSize=${pageSize}` +
     (userId ? `&userId=${userId}` : "") +
     (taskId ? `&taskId=${taskId}` : "") +
     `&sortColumn=${sortColumn}&sortDir=${sortDir}`,
 
   GET_BY_ID: (id) => `/api/submissions/${id}`,
+
   CREATE: "/api/submissions",
+
   UPDATE: (id) => `/api/submissions/${id}`,
+
   DELETE: (id) => `/api/submissions/${id}`,
+
   REVIEW: (id) => `/api/submissions/${id}/review`,
 };
 
