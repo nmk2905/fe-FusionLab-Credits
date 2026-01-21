@@ -1,12 +1,17 @@
+// src/pages/ProjectDetail/components/MilestonesTab/TaskManagement/TaskList.jsx
 import React, { useState, useEffect } from "react";
 import taskService from "../../../../../services/apis/taskApi";
 import CreateTaskPopup from "./CreateTaskPopup";
+import ViewSubmissionPopup from "./ViewSubmissionPopup";
 
 const TaskList = ({ milestoneId, milestone }) => {
   const [tasks, setTasks] = useState([]);
   const [showCreatePopup, setShowCreatePopup] = useState(false);
+  const [showSubmissionPopup, setShowSubmissionPopup] = useState(false); // Thêm state cho popup submission
+  const [selectedTask, setSelectedTask] = useState(null); // Thêm state để lưu task được chọn
   const [loading, setLoading] = useState(true);
   const [expandedTask, setExpandedTask] = useState(null);
+  const role = localStorage.getItem("role");
 
   useEffect(() => {
     fetchTasks();
@@ -19,7 +24,7 @@ const TaskList = ({ milestoneId, milestone }) => {
         milestoneId,
         1,
         100,
-        "Desc"
+        "Desc",
       );
 
       let tasksData = [];
@@ -48,6 +53,11 @@ const TaskList = ({ milestoneId, milestone }) => {
     await refreshTasks();
   };
 
+  const handleViewSubmission = (task) => {
+    setSelectedTask(task);
+    setShowSubmissionPopup(true);
+  };
+
   const formatDateTime = (dateString) => {
     if (!dateString) return "N/A";
     try {
@@ -56,8 +66,6 @@ const TaskList = ({ milestoneId, milestone }) => {
         year: "numeric",
         month: "short",
         day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
       });
     } catch (error) {
       return "Invalid Date";
@@ -228,7 +236,7 @@ const TaskList = ({ milestoneId, milestone }) => {
       completed: tasks.filter((t) => t.status === "Completed").length,
       inProgress: tasks.filter((t) => t.status === "In Progress").length,
       pending: tasks.filter(
-        (t) => t.status === "Pending" || t.status === "Not Started"
+        (t) => t.status === "Pending" || t.status === "Not Started",
       ).length,
       totalWeight: tasks.reduce((sum, task) => sum + (task.weight || 0), 0),
     };
@@ -266,25 +274,27 @@ const TaskList = ({ milestoneId, milestone }) => {
               Manage and track all tasks within this milestone
             </p>
           </div>
-          <button
-            onClick={() => setShowCreatePopup(true)}
-            className="inline-flex items-center justify-center px-5 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium rounded-xl hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-sm transition-all duration-200"
-          >
-            <svg
-              className="w-5 h-5 mr-2"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+          {role === "Mentor" && (
+            <button
+              onClick={() => setShowCreatePopup(true)}
+              className="inline-flex items-center justify-center px-5 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium rounded-xl hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-sm transition-all duration-200"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-              />
-            </svg>
-            Add New Task
-          </button>
+              <svg
+                className="w-5 h-5 mr-2"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                />
+              </svg>
+              Add New Task
+            </button>
+          )}
         </div>
 
         {/* Stats Cards */}
@@ -437,25 +447,27 @@ const TaskList = ({ milestoneId, milestone }) => {
             Start by creating your first task to track progress and assign work
             for this milestone.
           </p>
-          <button
-            onClick={() => setShowCreatePopup(true)}
-            className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium rounded-xl hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-sm transition-all duration-200"
-          >
-            <svg
-              className="w-5 h-5 mr-2"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+          {role === "Mentor" && (
+            <button
+              onClick={() => setShowCreatePopup(true)}
+              className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium rounded-xl hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-sm transition-all duration-200"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-              />
-            </svg>
-            Create Your First Task
-          </button>
+              <svg
+                className="w-5 h-5 mr-2"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                />
+              </svg>
+              Create Your First Task
+            </button>
+          )}
         </div>
       ) : (
         <div className="space-y-4">
@@ -572,6 +584,28 @@ const TaskList = ({ milestoneId, milestone }) => {
                     </div>
 
                     <div className="flex items-center gap-2">
+                      <button
+                        className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-200"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleViewSubmission(task);
+                        }}
+                        title="View Submissions"
+                      >
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                          />
+                        </svg>
+                      </button>
                       <button
                         className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
                         onClick={(e) => {
@@ -784,7 +818,7 @@ const TaskList = ({ milestoneId, milestone }) => {
                                 </span>
                                 <span
                                   className={`text-sm font-medium px-3 py-1 rounded-full ${getComplexityColor(
-                                    task.complexity
+                                    task.complexity,
                                   )}`}
                                 >
                                   {getComplexityText(task.complexity)} (
@@ -933,6 +967,14 @@ const TaskList = ({ milestoneId, milestone }) => {
         onClose={() => setShowCreatePopup(false)}
         milestoneId={milestoneId}
         onTaskAdded={handleAddTask}
+      />
+
+      {/* View Submission Popup */}
+      <ViewSubmissionPopup
+        isOpen={showSubmissionPopup}
+        onClose={() => setShowSubmissionPopup(false)}
+        taskId={selectedTask?.id}
+        taskLabel={selectedTask?.label}
       />
     </div>
   );

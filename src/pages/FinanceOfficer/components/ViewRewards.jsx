@@ -522,24 +522,6 @@ const ViewRewards = () => {
                             </button>
                             <button
                               onClick={() =>
-                                handleToggleStatus(reward.id, reward.isActive)
-                              }
-                              className={`p-2 rounded-lg transition-colors ${
-                                reward.isActive
-                                  ? "text-amber-600 hover:bg-amber-50"
-                                  : "text-emerald-600 hover:bg-emerald-50"
-                              }`}
-                              title={
-                                reward.isActive ? "Deactivate" : "Activate"
-                              }
-                            >
-                              <Power
-                                size={18}
-                                className={reward.isActive ? "" : "rotate-180"}
-                              />
-                            </button>
-                            <button
-                              onClick={() =>
                                 handleOpenDeletePopup(reward.id, reward.name)
                               }
                               className="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"

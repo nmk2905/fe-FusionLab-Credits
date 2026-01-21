@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom"; // Thêm useNavigate
+import { useParams, useNavigate, useSearchParams } from "react-router-dom"; // Thêm useNavigate
 import {
   CalendarIcon,
   PlusIcon,
@@ -15,7 +15,8 @@ const MilestoneDetail = () => {
   const [milestone, setMilestone] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState("detail");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get("tab") || "detail";
 
   useEffect(() => {
     const fetchMilestone = async () => {
@@ -170,7 +171,7 @@ const MilestoneDetail = () => {
             <div className="mt-2 flex items-center space-x-4">
               <span
                 className={`px-3 py-1 rounded-full text-sm font-medium ${getMilestoneStatusColor(
-                  milestone.status
+                  milestone.status,
                 )}`}
               >
                 {milestone.status}
@@ -192,7 +193,7 @@ const MilestoneDetail = () => {
       <div className="border-b border-gray-200">
         <nav className="-mb-px flex space-x-8">
           <button
-            onClick={() => setActiveTab("detail")}
+            onClick={() => setSearchParams({ tab: "detail" }, { replace: true })}
             className={`py-4 px-1 border-b-2 font-medium text-sm ${
               activeTab === "detail"
                 ? "border-blue-500 text-blue-600"
@@ -217,7 +218,7 @@ const MilestoneDetail = () => {
             </div>
           </button>
           <button
-            onClick={() => setActiveTab("task")}
+            onClick={() => setSearchParams({ tab: "task" }, { replace: true })}
             className={`py-4 px-1 border-b-2 font-medium text-sm ${
               activeTab === "task"
                 ? "border-blue-500 text-blue-600"
@@ -263,7 +264,7 @@ const MilestoneDetail = () => {
                 <div className="flex items-center space-x-2">
                   <span
                     className={`px-4 py-2 rounded-full text-sm font-medium ${getMilestoneStatusColor(
-                      milestone.status
+                      milestone.status,
                     )}`}
                   >
                     {milestone.status}
