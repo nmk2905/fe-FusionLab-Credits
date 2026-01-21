@@ -66,7 +66,7 @@ const MilestonePopup = ({ projectId, isOpen, onClose, onSuccess }) => {
         user.id,
         100,
         1,
-        "Desc"
+        "Desc",
       );
       if (response.rawResponse && response.rawResponse.data) {
         setProjects(response.rawResponse.data);
@@ -96,10 +96,10 @@ const MilestonePopup = ({ projectId, isOpen, onClose, onSuccess }) => {
         type === "checkbox"
           ? checked
           : name === "weight"
-          ? value // Giữ nguyên string để xử lý validation
-          : name === "projectId"
-          ? parseInt(value) || ""
-          : value,
+            ? value // Giữ nguyên string để xử lý validation
+            : name === "projectId"
+              ? parseInt(value) || ""
+              : value,
     };
 
     // Nếu bật isDelayed, tự động điền originalDueDate từ dueDate nếu chưa có
@@ -133,24 +133,15 @@ const MilestonePopup = ({ projectId, isOpen, onClose, onSuccess }) => {
     const value = e.target.value;
 
     // Chỉ cho phép số và dấu chấm
-    if (!/^\d*\.?\d*$/.test(value)) {
-      return;
-    }
+    if (!/^\d*\.?\d*$/.test(value)) return;
 
-    // Convert thành number
-    const numValue = parseFloat(value);
+    // Cho phép rỗng, 0, 0.x, 1, 1.0
+    setFormData({
+      ...formData,
+      weight: value,
+    });
 
-    // Kiểm tra điều kiện
-    if (value === "") {
-      // Cho phép rỗng để người dùng có thể xóa
-      setFormData({ ...formData, weight: value });
-    } else if (numValue > 0 && numValue <= 1) {
-      setFormData({ ...formData, weight: value });
-    } else if (numValue <= 0) {
-      // Nếu nhập 0 hoặc số âm, không update
-      return;
-    }
-    // Nếu > 1 cũng không update
+    if (error) setError("");
   };
 
   const handleDateChange = (e) => {
@@ -190,8 +181,11 @@ const MilestonePopup = ({ projectId, isOpen, onClose, onSuccess }) => {
     }
 
     // Validate weight
-    const weightValue = parseFloat(formData.weight);
-    if (formData.weight && (weightValue <= 0 || weightValue > 1)) {
+    const weightValue =
+      formData.weight === "" ? 0 : parseFloat(formData.weight);
+
+    // Nếu user nhập khác 0 thì phải > 0 và ≤ 1
+    if (weightValue !== 0 && (weightValue <= 0 || weightValue > 1)) {
       setError("Weight must be greater than 0 and less than or equal to 1");
       return;
     }
@@ -447,11 +441,11 @@ const MilestonePopup = ({ projectId, isOpen, onClose, onSuccess }) => {
                   <label className="block text-sm font-semibold text-gray-800 mb-3">
                     Weight
                     <span className="text-gray-500 font-normal ml-2">
-                      (0 &lt; weight ≤ 1)
+                      (0 ≤ weight ≤ 1)
                     </span>
                   </label>
                   <input
-                    type="number"
+                    type="text"
                     name="weight"
                     value={formData.weight}
                     onChange={handleWeightChange}
@@ -516,8 +510,8 @@ const MilestonePopup = ({ projectId, isOpen, onClose, onSuccess }) => {
                         {loading
                           ? "Loading projects..."
                           : filteredProjects.length === 0
-                          ? "No projects available"
-                          : "Select a project"}
+                            ? "No projects available"
+                            : "Select a project"}
                       </option>
                       {filteredProjects.map((project) => (
                         <option key={project.id} value={project.id}>

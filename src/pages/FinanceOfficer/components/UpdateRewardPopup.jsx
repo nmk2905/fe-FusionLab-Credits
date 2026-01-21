@@ -3,12 +3,7 @@ import React, { useState, useEffect } from "react";
 import { X, Loader2 } from "lucide-react";
 import rewardItemService from "../../../services/apis/rewardItemApi";
 
-const UpdateRewardPopup = ({ 
-  isOpen, 
-  onClose, 
-  rewardId,
-  onUpdateSuccess
-}) => {
+const UpdateRewardPopup = ({ isOpen, onClose, rewardId, onUpdateSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(false);
   const [error, setError] = useState("");
@@ -21,7 +16,7 @@ const UpdateRewardPopup = ({
     priceInPoints: "",
     quantity: "",
     type: "Physical",
-    isActive: true
+    isActive: true,
   });
 
   const rewardTypes = ["Physical", "Digital"];
@@ -31,6 +26,16 @@ const UpdateRewardPopup = ({
     if (isOpen && rewardId) {
       fetchRewardData();
     }
+
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [isOpen, rewardId]);
 
   const fetchRewardData = async () => {
@@ -38,7 +43,7 @@ const UpdateRewardPopup = ({
     setError("");
     try {
       const result = await rewardItemService.getRewardItemById(rewardId);
-      
+
       if (result?.success) {
         const reward = result?.rawResponse?.data || result?.data;
         setFormData({
@@ -47,7 +52,7 @@ const UpdateRewardPopup = ({
           priceInPoints: reward.priceInPoints?.toString() || "",
           quantity: reward.quantity?.toString() || "",
           type: reward.type || "Physical",
-          isActive: reward.isActive || true
+          isActive: reward.isActive || true,
         });
       } else {
         setError("Failed to fetch reward details");
@@ -62,15 +67,15 @@ const UpdateRewardPopup = ({
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === "checkbox" ? checked : value,
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Validation
     if (!formData.name.trim()) {
       setError("Name is required");
@@ -96,11 +101,14 @@ const UpdateRewardPopup = ({
         priceInPoints: Number(formData.priceInPoints),
         quantity: Number(formData.quantity),
         type: formData.type,
-        isActive: formData.isActive
+        isActive: formData.isActive,
       };
 
-      const result = await rewardItemService.updateRewardItem(rewardId, updateData);
-      
+      const result = await rewardItemService.updateRewardItem(
+        rewardId,
+        updateData,
+      );
+
       if (result?.success) {
         setSuccess("Reward updated successfully!");
         setTimeout(() => {
@@ -123,11 +131,11 @@ const UpdateRewardPopup = ({
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       {/* Backdrop */}
-      <div 
-        className="fixed inset-0 bg-black/50 transition-opacity" 
+      <div
+        className="fixed inset-0 bg-black/50 transition-opacity"
         onClick={!loading ? onClose : undefined}
       />
-      
+
       {/* Modal */}
       <div className="flex min-h-full items-center justify-center p-4">
         <div className="relative w-full max-w-2xl transform overflow-hidden rounded-xl bg-white shadow-xl transition-all">
@@ -171,7 +179,9 @@ const UpdateRewardPopup = ({
                 <div className="flex items-center justify-center py-12">
                   <div className="text-center">
                     <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto" />
-                    <p className="mt-3 text-gray-600">Loading reward details...</p>
+                    <p className="mt-3 text-gray-600">
+                      Loading reward details...
+                    </p>
                   </div>
                 </div>
               ) : (
@@ -279,7 +289,10 @@ const UpdateRewardPopup = ({
                       />
                     </div>
                     <div className="flex-1">
-                      <label htmlFor="isActive" className="text-sm font-medium text-gray-700">
+                      <label
+                        htmlFor="isActive"
+                        className="text-sm font-medium text-gray-700"
+                      >
                         Active Reward
                       </label>
                       <p className="text-xs text-gray-500 mt-1">

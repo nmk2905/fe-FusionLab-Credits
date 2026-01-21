@@ -71,7 +71,7 @@ export default function CreateSemester() {
     try {
       // Find the semester with the latest end date
       const sorted = [...semesters].sort(
-        (a, b) => new Date(b.endDate) - new Date(a.endDate)
+        (a, b) => new Date(b.endDate) - new Date(a.endDate),
       );
 
       return sorted[0]?.endDate || null;
@@ -122,7 +122,7 @@ export default function CreateSemester() {
     return {
       minStart: nextAvailableDate.toISOString().split("T")[0],
       message: `Earliest start date: ${nextAvailableDate.toLocaleDateString(
-        "en-US"
+        "en-US",
       )}`,
     };
   };
@@ -171,23 +171,26 @@ export default function CreateSemester() {
         keywordTheme: semesterData.academicYear,
         startDate: new Date(semesterData.startDate).toISOString(),
         endDate: new Date(semesterData.endDate).toISOString(),
-        status: "active",
+        status: "Upcoming",
       };
 
       // Call API to create semester
-      await semesterService.addSemester(dataToSend);
+      const response = await semesterService.addSemester(dataToSend);
 
-      showNotification("Semester created successfully!", "success");
-
-      // Reset form
-      setSemesterData({
-        name: "",
-        academicYear: "",
-        startDate: "",
-        endDate: "",
-        registrationStart: "",
-        registrationEnd: "",
-      });
+      if (response.success) {
+        showNotification("Semester created successfully!", "success");
+        // Reset form
+        setSemesterData({
+          name: "",
+          academicYear: "",
+          startDate: "",
+          endDate: "",
+          registrationStart: "",
+          registrationEnd: "",
+        });
+      } else {
+        showNotification(response.error, "error");
+      }
 
       // Refresh semester list
       await fetchExistingSemesters();
@@ -195,7 +198,7 @@ export default function CreateSemester() {
       console.error("Error creating semester:", error);
       setErrorMessage(
         error.response?.data?.message ||
-          "An error occurred while creating the semester"
+          "An error occurred while creating the semester",
       );
     } finally {
       setIsLoading(false);
@@ -223,8 +226,8 @@ export default function CreateSemester() {
     if (dateRange.minStart && newStartDate < dateRange.minStart) {
       setErrorMessage(
         `Start date must be after ${new Date(
-          dateRange.minStart
-        ).toLocaleDateString("en-US")}`
+          dateRange.minStart,
+        ).toLocaleDateString("en-US")}`,
       );
     } else {
       setErrorMessage("");
@@ -441,12 +444,12 @@ export default function CreateSemester() {
                   {existingSemesters.map((semester, index) => {
                     const status = getSemesterStatus(
                       semester.startDate,
-                      semester.endDate
+                      semester.endDate,
                     );
                     const startDate = new Date(semester.startDate);
                     const endDate = new Date(semester.endDate);
                     const durationDays = Math.ceil(
-                      (endDate - startDate) / (1000 * 60 * 60 * 24)
+                      (endDate - startDate) / (1000 * 60 * 60 * 24),
                     );
 
                     return (

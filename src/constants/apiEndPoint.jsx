@@ -31,6 +31,8 @@ export const API_ENDPOINTS_PROJECT = {
   ADD_PROJECT: "/api/projects",
   GET_USER_HISTORY: (userId, pageIndex = 1, pageSize = 20, sortColumn = "Id", sortDir = "Desc") =>
     `/api/projects/history/${userId}?pageIndex=${pageIndex}&pageSize=${pageSize}&sortColumn=${sortColumn}&sortDir=${sortDir}`,
+  START_PROJECT: (projectId) => `/api/projects/${projectId}/start`,
+  CLOSE_PROJECT: (projectId) => `/api/projects/${projectId}/close`,
 };
 
 export const API_ENDPOINTS_SEMESTER = {

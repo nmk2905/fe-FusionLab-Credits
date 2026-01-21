@@ -102,19 +102,24 @@ export default function CreateProject() {
     try {
       const response = await projectService.addProject(projectData);
       console.log("Project created successfully:", response);
-      showNotification("Project created successfully!", "success");
 
-      // Reset form
-      setProjectData({
-        title: "",
-        description: "",
-        totalPoints: 0,
-        semesterId: semesters[0]?.id || 0,
-        proposerId: 9,
-        mentorId: 0,
-        minMembers: 50,
-        maxMembers: 50,
-      });
+      if (response.success) {
+        showNotification("Project created successfully!", "success");
+
+        // Reset form
+        setProjectData({
+          title: "",
+          description: "",
+          totalPoints: 0,
+          semesterId: semesters[0]?.id || 0,
+          proposerId: 9,
+          mentorId: 0,
+          minMembers: 50,
+          maxMembers: 50,
+        });
+      } else {
+        showNotification(response.error, "error");
+      }
     } catch (error) {
       console.error("Error creating project:", error);
       alert("Failed to create project. Please try again.");

@@ -1,8 +1,9 @@
 // src/ProjectDetail/ProjectDetail.jsx
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { ChevronRight, ArrowLeft } from "lucide-react";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import { ChevronRight, ArrowLeft, Play, X, CheckCircle } from "lucide-react";
 import projectService from "../../services/apis/projectApi";
+import { useNotification } from "../../hook/useNotification";
 
 // Import các tab components
 import OverviewTab from "./components/OverviewTab";
@@ -11,12 +12,17 @@ import MentorTab from "./components/MentorTab";
 import TeamTab from "./components/TeamTab";
 
 const ProjectDetail = () => {
-  const { projectId } = useParams();
   const navigate = useNavigate();
-
+  const [isUpdating, setIsUpdating] = useState(false);
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("overview");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get("tab") || "overview";
+  const { projectId } = useParams();
+  const { showNotification } = useNotification();
+
+  // Lấy role từ localStorage
+  const [userRole, setUserRole] = useState(null);
 
   // Chỉ fetch thông tin cơ bản của project
   useEffect(() => {
@@ -41,6 +47,105 @@ const ProjectDetail = () => {
       fetchProjectBasicInfo();
     }
   }, [projectId]);
+
+  // Lấy role từ localStorage khi component mount
+  useEffect(() => {
+    const role = localStorage.getItem("role");
+    setUserRole(role);
+  }, []);
+
+  // API Start Project
+  const handleStartProject = async () => {
+    if (!projectId) return;
+
+    try {
+      setIsUpdating(true);
+      const response = await projectService.startProject(projectId);
+      console.log(response);
+
+      if (response.success) {
+        // Cập nhật trạng thái project
+        setProject((prev) => ({
+          ...prev,
+          status: "InProcess",
+        }));
+
+        showNotification("Project started successfully", "success");
+      } else {
+        showNotification(response.error, "error");
+      }
+    } catch (error) {
+      console.error("Error starting project:", error);
+      showNotification("Failed to start project", "error");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  // API Close Project
+  const handleCloseProject = async () => {
+    if (!projectId) return;
+
+    try {
+      setIsUpdating(true);
+      const response = await projectService.closeProject(projectId);
+
+      if (response.success) {
+        // Cập nhật trạng thái project
+        setProject((prev) => ({
+          ...prev,
+          status: "Close",
+        }));
+
+        showNotification("Project closed successfully", "success");
+      } else {
+        showNotification(response.error, "error");
+      }
+    } catch (error) {
+      console.error("Error closing project:", error);
+      showNotification("Failed to close project", "error");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  // Hàm để xác định class CSS cho từng trạng thái
+  const getStatusClasses = (status) => {
+    switch (status) {
+      case "Open": // Recruiting members
+        return "bg-blue-100 text-blue-800 border border-blue-200";
+      case "InProcess": // Active/started
+        return "bg-yellow-100 text-yellow-800 border border-yellow-200";
+      case "Close": // Closed (e.g., cancelled)
+        return "bg-red-100 text-red-800 border border-red-200";
+      case "Complete": // Finished
+        return "bg-green-100 text-green-800 border border-green-200";
+      default:
+        return "bg-gray-100 text-gray-800 border border-gray-200";
+    }
+  };
+
+  // Hàm để hiển thị tên trạng thái thân thiện hơn
+  const getDisplayStatus = (status) => {
+    switch (status) {
+      case "Open":
+        return "Recruiting";
+      case "InProcess":
+        return "In Progress";
+      case "Close":
+        return "Closed";
+      case "Complete":
+        return "Completed";
+      default:
+        return status || "Unknown";
+    }
+  };
+
+  // Kiểm tra điều kiện hiển thị các button
+  const isMentor = userRole === "Mentor";
+  const shouldShowStartButton = isMentor && project?.status === "Open";
+  const shouldShowCloseButton = isMentor && project?.status === "InProcess";
+  const shouldShowMarkComplete = isMentor && project?.status === "InProcess";
 
   if (loading) {
     return (
@@ -116,18 +221,70 @@ const ProjectDetail = () => {
               </h1>
               <p className="text-gray-600 mt-2">{project.description}</p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex items-center gap-3">
+              {/* Status Badge */}
               <span
-                className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  project.status === "Open"
-                    ? "bg-green-100 text-green-800"
-                    : project.status === "Closed"
-                    ? "bg-red-100 text-red-800"
-                    : "bg-gray-100 text-gray-800"
-                }`}
+                className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusClasses(
+                  project.status,
+                )}`}
               >
-                {project.status || "Unknown"}
+                {getDisplayStatus(project.status)}
               </span>
+
+              {/* Action Buttons */}
+              {isMentor && (
+                <div className="flex gap-2">
+                  {/* Start Project Button - Chỉ hiển thị khi status là Open */}
+                  {shouldShowStartButton && (
+                    <button
+                      onClick={handleStartProject}
+                      disabled={isUpdating}
+                      className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isUpdating ? (
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      ) : (
+                        <Play size={16} />
+                      )}
+                      Start Project
+                    </button>
+                  )}
+
+                  {/* Close Project Button - Chỉ hiển thị khi status là InProcess */}
+                  {shouldShowCloseButton && (
+                    <button
+                      onClick={handleCloseProject}
+                      disabled={isUpdating}
+                      className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isUpdating ? (
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      ) : (
+                        <X size={16} />
+                      )}
+                      Close Project
+                    </button>
+                  )}
+
+                  {/* Complete Project Button - Chỉ hiển thị khi status là InProcess */}
+                  {shouldShowMarkComplete && (
+                    <button
+                      onClick={() => {
+                        // TODO: Implement API Complete Project nếu có
+                        console.log("Complete project clicked");
+                        showNotification(
+                          "Mark Complete feature coming soon",
+                          "info",
+                        );
+                      }}
+                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      <CheckCircle size={16} />
+                      Mark Complete
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -135,7 +292,9 @@ const ProjectDetail = () => {
           <div className="border-b border-gray-200">
             <div className="flex gap-6">
               <button
-                onClick={() => setActiveTab("overview")}
+                onClick={() =>
+                  setSearchParams({ tab: "overview" }, { replace: true })
+                }
                 className={`py-3 font-medium border-b-2 transition-colors ${
                   activeTab === "overview"
                     ? "border-blue-600 text-blue-600"
@@ -145,7 +304,9 @@ const ProjectDetail = () => {
                 Overview
               </button>
               <button
-                onClick={() => setActiveTab("milestones")}
+                onClick={() =>
+                  setSearchParams({ tab: "milestones" }, { replace: true })
+                }
                 className={`py-3 font-medium border-b-2 transition-colors ${
                   activeTab === "milestones"
                     ? "border-blue-600 text-blue-600"
@@ -155,7 +316,9 @@ const ProjectDetail = () => {
                 Milestones
               </button>
               <button
-                onClick={() => setActiveTab("mentor")}
+                onClick={() =>
+                  setSearchParams({ tab: "mentor" }, { replace: true })
+                }
                 className={`py-3 font-medium border-b-2 transition-colors ${
                   activeTab === "mentor"
                     ? "border-blue-600 text-blue-600"
@@ -165,7 +328,9 @@ const ProjectDetail = () => {
                 Mentor
               </button>
               <button
-                onClick={() => setActiveTab("team")}
+                onClick={() =>
+                  setSearchParams({ tab: "team" }, { replace: true })
+                }
                 className={`py-3 font-medium border-b-2 transition-colors ${
                   activeTab === "team"
                     ? "border-blue-600 text-blue-600"
