@@ -612,6 +612,7 @@ const TaskList = ({ milestoneId, milestone }) => {
                           e.stopPropagation();
                           // Handle edit action here
                         }}
+                        title="Edit Task"
                       >
                         <svg
                           className="w-5 h-5"
@@ -633,6 +634,7 @@ const TaskList = ({ milestoneId, milestone }) => {
                           handleDeleteTask(task.id);
                         }}
                         className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                        title="Delete Task"
                       >
                         <svg
                           className="w-5 h-5"
@@ -938,19 +940,6 @@ const TaskList = ({ milestoneId, milestone }) => {
                             </div>
                           </div>
                         </div>
-                      </div>
-
-                      {/* Action Buttons */}
-                      <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-200">
-                        <button
-                          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors duration-200"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            // Handle edit task
-                          }}
-                        >
-                          Edit Task
-                        </button>
                       </div>
                     </div>
                   </div>
