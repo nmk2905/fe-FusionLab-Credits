@@ -37,7 +37,8 @@ const redeemRequestService = {
    */
   async createRedeemRequest({ quantity, userId, rewardItemId }) {
     const payload = { quantity, userId, rewardItemId };
-    return apiUtils.post(API_ENDPOINTS_REDEEM.CREATE(), payload);
+    // FIX APPLIED: Removed () because CREATE is a string, not a function
+    return apiUtils.post(API_ENDPOINTS_REDEEM.CREATE, payload);
   },
 
   /**
