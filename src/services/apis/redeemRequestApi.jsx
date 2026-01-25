@@ -10,25 +10,17 @@ const redeemRequestService = {
   async getAllRedeemRequests({
     pageIndex = 1,
     pageSize = 10,
-    keyword = "",
-    status = "",
     userId = null,
-    rewardItemId = null,
     collected = null,
-    sortColumn = "Id",
-    sortDir = "Asc",
+    sortDir = "Desc",
   } = {}) {
-    const url = API_ENDPOINTS_REDEEM.GET_ALL({
+    const url = API_ENDPOINTS_REDEEM.GET_ALL(
       pageIndex,
       pageSize,
-      keyword,
-      status,
       userId,
-      rewardItemId,
       collected,
-      sortColumn,
       sortDir,
-    });
+    );
     return apiUtils.get(url);
   },
 
@@ -53,7 +45,7 @@ const redeemRequestService = {
       collected = null,
       sortColumn = "Id",
       sortDir = "Asc",
-    } = {}
+    } = {},
   ) {
     const url = API_ENDPOINTS_REDEEM.GET_BY_USER(userId, {
       pageIndex,

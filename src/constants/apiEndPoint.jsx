@@ -15,7 +15,7 @@ export const API_ENDPOINTS_USER = {
     pageIndex = 1,
     pageSize = 1000,
     sortDir = "desc",
-    search = ""
+    search = "",
   ) =>
     `/api/Users?Search=${search}&Role=${role}&PageIndex=${pageIndex}&PageSize=${pageSize}&SortDir=${sortDir}`,
   GET_USER: (userId) => `/api/Users/${userId}`,
@@ -29,7 +29,13 @@ export const API_ENDPOINTS_PROJECT = {
   GET_PROJECT_BY_MENTOR_ID: (mentorId, pageSize, pageIndex, sortDir) =>
     `/api/projects/mentor/${mentorId}?pageIndex=${pageIndex}&pageSize=${pageSize}&sortDir=${sortDir}`,
   ADD_PROJECT: "/api/projects",
-  GET_USER_HISTORY: (userId, pageIndex = 1, pageSize = 20, sortColumn = "Id", sortDir = "Desc") =>
+  GET_USER_HISTORY: (
+    userId,
+    pageIndex = 1,
+    pageSize = 20,
+    sortColumn = "Id",
+    sortDir = "Desc",
+  ) =>
     `/api/projects/history/${userId}?pageIndex=${pageIndex}&pageSize=${pageSize}&sortColumn=${sortColumn}&sortDir=${sortDir}`,
   START_PROJECT: (projectId) => `/api/projects/${projectId}/start`,
   CLOSE_PROJECT: (projectId) => `/api/projects/${projectId}/close`,
@@ -44,7 +50,7 @@ export const API_ENDPOINTS_SEMESTER = {
 
 export const API_ENDPOINTS_PROJECT_INVITATION = {
   SEND_INVITATION: "/api/project-invitations",
-  RESPOND_INVITATION: "/api/project-invitations/accept-or-deny",   // ← changed
+  RESPOND_INVITATION: "/api/project-invitations/accept-or-deny", // ← changed
   GET_INVITATIONS_BY_PROJECT: (projectId, pageIndex = 1, pageSize = 10) =>
     `/api/project-invitations/project/${projectId}?pageIndex=${pageIndex}&pageSize=${pageSize}`,
   GET_INVITATION_BY_ID: (id) => `/api/project-invitations/${id}`,
@@ -88,7 +94,14 @@ export const API_ENDPOINTS_REWARD = {
 };
 // constants/apiEndPoint.js
 export const API_ENDPOINTS_SUBMISSION = {
-  GET_ALL: (pageIndex = 1, pageSize = 10, userId = "", taskId = "", sortColumn = "Id", sortDir = "Asc") =>
+  GET_ALL: (
+    pageIndex = 1,
+    pageSize = 10,
+    userId = "",
+    taskId = "",
+    sortColumn = "Id",
+    sortDir = "Asc",
+  ) =>
     `/api/submissions?pageIndex=${pageIndex}&pageSize=${pageSize}` +
     (userId ? `&userId=${userId}` : "") +
     (taskId ? `&taskId=${taskId}` : "") +
@@ -106,7 +119,8 @@ export const API_ENDPOINTS_SUBMISSION = {
 };
 
 export const API_ENDPOINTS_REDEEM = {
-  GET_ALL: "/api/redeemrequests",
+  GET_ALL: (pageIndex, pageSize, userId, collected, sortDir) =>
+    `/api/redeemrequests?pageIndex=${pageIndex}&pageSize=${pageSize}${userId ? `&userId=${userId}` : ""}${collected !== null ? `&collected=${collected}` : ""}&sortDir=${sortDir}`,
   CREATE: "/api/redeemrequests",
   GET_BY_USER: (userId) => `/api/redeemrequests/by-user/${userId}`,
   GET_BY_ID: (id) => `/api/redeemrequests/${id}`,
