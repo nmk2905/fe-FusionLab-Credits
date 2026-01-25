@@ -129,8 +129,8 @@ export const API_ENDPOINTS_SUBMISSION = {
 };
 
 export const API_ENDPOINTS_REDEEM = {
-  GET_ALL: (pageIndex, pageSize, userId, collected, sortDir) =>
-    `/api/redeemrequests?pageIndex=${pageIndex}&pageSize=${pageSize}${userId ? `&userId=${userId}` : ""}${collected !== null ? `&collected=${collected}` : ""}&sortDir=${sortDir}`,
+  GET_ALL: (pageIndex, pageSize, userId, collected, sortDir, status) =>
+    `/api/redeemrequests?pageIndex=${pageIndex}&pageSize=${pageSize}${userId ? `&userId=${userId}` : ""}${collected !== null ? `&collected=${collected}` : ""}&sortDir=${sortDir}${status ? `&status=${status}` : ""}`,
   CREATE: "/api/redeemrequests",
   GET_BY_USER: (userId) => `/api/redeemrequests/by-user/${userId}`,
   GET_BY_ID: (id) => `/api/redeemrequests/${id}`,
