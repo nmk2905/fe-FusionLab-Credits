@@ -52,7 +52,9 @@ const STATUS_ICONS = {
   Late: <AlertCircle size={18} className="text-red-600" />,
 };
 
-const TASKS_PER_PAGE = 2; // Show 5 tasks per page
+const COMMENTABLE_STATUSES = ["Approved", "Rejected", "Denied", "Reviewed"];
+
+const TASKS_PER_PAGE = 2;
 
 export default function TaskManagement({ projectId }) {
   const { user } = useContext(AuthContext);
@@ -68,8 +70,8 @@ export default function TaskManagement({ projectId }) {
   const [uploadStatus, setUploadStatus] = useState({});
 
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedSubmission, setSelectedSubmission] = useState(null);
 
-  // Helper: extract filename from Cloudinary URL
   const getFileNameFromUrl = (url) => {
     if (!url) return "Download file";
     try {
@@ -83,7 +85,6 @@ export default function TaskManagement({ projectId }) {
     }
   };
 
-  // Load tasks + submissions
   useEffect(() => {
     if (!projectId) return;
 
@@ -298,7 +299,6 @@ export default function TaskManagement({ projectId }) {
     [tasksByMilestone],
   );
 
-  // Pagination logic
   const totalPages = Math.ceil(allTasks.length / TASKS_PER_PAGE);
   const paginatedTasks = useMemo(() => {
     const startIndex = (currentPage - 1) * TASKS_PER_PAGE;
@@ -383,8 +383,8 @@ export default function TaskManagement({ projectId }) {
               const submission = submissions[task.id];
               const status = submission?.status || mappedStatus;
               const isUploading = uploadStatus[task.id]?.loading;
-              const hasFileSelected =
-                !!selectedFile && uploadingTaskId === task.id;
+              const hasFileSelected = !!selectedFile && uploadingTaskId === task.id;
+              const isFinal = COMMENTABLE_STATUSES.includes(submission?.status);
 
               return (
                 <div
@@ -424,11 +424,24 @@ export default function TaskManagement({ projectId }) {
                     </div>
 
                     <div className="flex flex-col items-end gap-5 min-w-[280px]">
-                      <div
-                        className={`px-5 py-2 rounded-full text-sm font-semibold border ${STATUS_COLORS[status]} flex items-center gap-2`}
-                      >
-                        {STATUS_ICONS[status]}
-                        {status}
+                      {/* Status badge + View Comment button on the same line */}
+                      <div className="flex flex-wrap items-center justify-end gap-3 sm:gap-4">
+                        <div
+                          className={`px-5 py-2 rounded-full text-sm font-semibold border ${STATUS_COLORS[status]} flex items-center gap-2`}
+                        >
+                          {STATUS_ICONS[status]}
+                          {status}
+                        </div>
+
+                        {isFinal && (
+                          <button
+                            onClick={() => setSelectedSubmission(submission)}
+                            className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl font-medium transition-colors"
+                          >
+                            <FileText size={18} />
+                            View Comment
+                          </button>
+                        )}
                       </div>
 
                       {submission ? (
@@ -437,12 +450,7 @@ export default function TaskManagement({ projectId }) {
                             Submitted:{" "}
                             {new Date(submission.submittedAt).toLocaleString()}
                           </p>
-                          <p>
-                            Status:{" "}
-                            <strong className="text-orange-600">
-                              {submission.status}
-                            </strong>
-                          </p>
+
                           {submission.grade !== null && (
                             <p className="font-medium">
                               Grade:{" "}
@@ -469,62 +477,63 @@ export default function TaskManagement({ projectId }) {
                             </div>
                           )}
 
-                          <div className="flex flex-col gap-3 mt-5">
-                            {hasFileSelected ? (
-                              <div className="flex items-center justify-end gap-4">
-                                <span className="text-gray-700 truncate max-w-[200px] text-sm">
-                                  {selectedFile.name}
-                                </span>
-                                <button
-                                  onClick={() => {
-                                    setSelectedFile(null);
-                                    setUploadingTaskId(null);
-                                  }}
-                                  className="text-red-500 hover:text-red-700"
-                                >
-                                  <X size={20} />
-                                </button>
-                                <button
-                                  onClick={() =>
-                                    handleUpdateSubmission(task.id)
-                                  }
-                                  disabled={isUploading}
-                                  className={`px-6 py-2.5 rounded-xl text-white text-sm font-medium flex items-center gap-2 shadow-md ${
-                                    isUploading
-                                      ? "bg-gray-400 cursor-not-allowed"
-                                      : "bg-orange-500 hover:bg-orange-600"
-                                  }`}
-                                >
-                                  <Edit size={18} />
-                                  {isUploading ? "Updating..." : "Update"}
-                                </button>
-                              </div>
-                            ) : (
-                              <div className="flex flex-wrap justify-end gap-4">
-                                <label className="cursor-pointer inline-flex items-center gap-2 px-5 py-2.5 bg-orange-100 hover:bg-orange-200 text-orange-700 rounded-xl font-medium transition-colors">
-                                  <Upload size={18} />
-                                  <span>Re-submit</span>
-                                  <input
-                                    type="file"
-                                    className="hidden"
-                                    onChange={(e) =>
-                                      handleFileChange(e, task.id)
-                                    }
-                                  />
-                                </label>
+                          {/* Only show upload/re-submit/delete area if NOT final status */}
+                          {!isFinal && (
+                            <div className="flex flex-col gap-3 mt-5">
+                              {hasFileSelected ? (
+                                <div className="flex items-center justify-end gap-4">
+                                  <span className="text-gray-700 truncate max-w-[200px] text-sm">
+                                    {selectedFile.name}
+                                  </span>
+                                  <button
+                                    onClick={() => {
+                                      setSelectedFile(null);
+                                      setUploadingTaskId(null);
+                                    }}
+                                    className="text-red-500 hover:text-red-700"
+                                  >
+                                    <X size={20} />
+                                  </button>
+                                  <button
+                                    onClick={() => handleUpdateSubmission(task.id)}
+                                    disabled={isUploading}
+                                    className={`px-6 py-2.5 rounded-xl text-white text-sm font-medium flex items-center gap-2 shadow-md ${
+                                      isUploading
+                                        ? "bg-gray-400 cursor-not-allowed"
+                                        : "bg-orange-500 hover:bg-orange-600"
+                                    }`}
+                                  >
+                                    <Edit size={18} />
+                                    {isUploading ? "Updating..." : "Update"}
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="flex flex-wrap justify-end gap-4">
+                                  <label className="cursor-pointer inline-flex items-center gap-2 px-5 py-2.5 bg-orange-100 hover:bg-orange-200 text-orange-700 rounded-xl font-medium transition-colors">
+                                    <Upload size={18} />
+                                    <span>Re-submit</span>
+                                    <input
+                                      type="file"
+                                      className="hidden"
+                                      onChange={(e) =>
+                                        handleFileChange(e, task.id)
+                                      }
+                                    />
+                                  </label>
 
-                                <button
-                                  onClick={() =>
-                                    handleDeleteSubmission(task.id)
-                                  }
-                                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-red-50 hover:bg-red-100 text-red-700 rounded-xl font-medium transition-colors"
-                                >
-                                  <Trash2 size={18} />
-                                  Delete
-                                </button>
-                              </div>
-                            )}
-                          </div>
+                                  <button
+                                    onClick={() =>
+                                      handleDeleteSubmission(task.id)
+                                    }
+                                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-red-50 hover:bg-red-100 text-red-700 rounded-xl font-medium transition-colors"
+                                  >
+                                    <Trash2 size={18} />
+                                    Delete
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          )}
 
                           {uploadStatus[task.id]?.message && (
                             <p
@@ -636,6 +645,67 @@ export default function TaskManagement({ projectId }) {
             </div>
           )}
         </motion.div>
+      )}
+
+      {/* Feedback Modal */}
+      {selectedSubmission && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.95, opacity: 0 }}
+            className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden"
+          >
+            <div className="bg-blue-600 px-6 py-4 text-white flex items-center justify-between">
+              <h3 className="text-lg font-semibold flex items-center gap-3">
+                <FileText size={20} />
+                Feedback & Score
+              </h3>
+              <button
+                onClick={() => setSelectedSubmission(null)}
+                className="text-white hover:text-gray-200"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              <div>
+                <h4 className="font-medium text-gray-800 mb-1">Status</h4>
+                <p className="text-gray-700">{selectedSubmission.status}</p>
+              </div>
+
+              {selectedSubmission.grade !== null && (
+                <div>
+                  <h4 className="font-medium text-gray-800 mb-1">Grade / Score</h4>
+                  <p className="text-2xl font-bold text-green-600">
+                    {selectedSubmission.grade}
+                  </p>
+                </div>
+              )}
+
+              <div>
+                <h4 className="font-medium text-gray-800 mb-1">Mentor Comment</h4>
+                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 min-h-[100px] whitespace-pre-wrap">
+                  {selectedSubmission.feedback?.trim() ? (
+                    <p className="text-gray-800">{selectedSubmission.feedback}</p>
+                  ) : (
+                    <p className="text-gray-500 italic">No comment provided.</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setSelectedSubmission(null)}
+                  className="px-6 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-xl font-medium"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
       )}
     </div>
   );
