@@ -13,6 +13,7 @@ const redeemRequestService = {
     userId = null,
     collected = null,
     sortDir = "Desc",
+    status = "",
   } = {}) {
     const url = API_ENDPOINTS_REDEEM.GET_ALL(
       pageIndex,
@@ -20,6 +21,7 @@ const redeemRequestService = {
       userId,
       collected,
       sortDir,
+      status
     );
     return apiUtils.get(url);
   },
@@ -76,7 +78,7 @@ const redeemRequestService = {
    * Update status of a redeem request (admin/finance)
    */
   async updateRedeemRequestStatus(id, status) {
-    return apiUtils.put(API_ENDPOINTS_REDEEM.UPDATE_STATUS(id), { status });
+    return apiUtils.put(API_ENDPOINTS_REDEEM.UPDATE_STATUS(id), status );
   },
 
   /**

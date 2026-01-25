@@ -2,14 +2,23 @@ import { API_ENDPOINTS_TASK } from "../../constants/apiEndPoint";
 import { apiUtils } from "../../utils/apiUtils";
 
 const taskService = {
-  async getTasksByMilestone(milestoneId, pageIndex, pageSize, sortDir) {
+  async getTasksByMilestone(
+    {milestoneId,
+    pageIndex = 1,
+    pageSize = 100,
+    sortDir = 'Desc',
+    projectId,
+    assigneeId,
+  }) {
     return apiUtils.get(
       API_ENDPOINTS_TASK.GET_TASKS_BY_MILESTONE(
         milestoneId,
         pageIndex,
         pageSize,
-        sortDir
-      )
+        sortDir,
+        projectId,
+        assigneeId,
+      ),
     );
   },
 

@@ -19,7 +19,7 @@ export const API_ENDPOINTS_USER = {
   ) =>
     `/api/Users?Search=${search}&Role=${role}&PageIndex=${pageIndex}&PageSize=${pageSize}&SortDir=${sortDir}`,
   GET_USER: (userId) => `/api/Users/${userId}`,
-  UPDATE_INFORMATION_USER: "/api/User/UpdateInfoUser",
+  DELETE_USER: (userId) => `/api/Users/${userId}`,
 };
 
 export const API_ENDPOINTS_PROJECT = {
@@ -76,8 +76,18 @@ export const API_ENDPOINTS_MILESTONE = {
 };
 
 export const API_ENDPOINTS_TASK = {
-  GET_TASKS_BY_MILESTONE: (milestoneId, pageIndex, pageSize, sortDir) =>
-    `/api/tasks?milestoneId=${milestoneId}&pageIndex=${pageIndex}&pageSize=${pageSize}&sortDir=${sortDir}`,
+  GET_TASKS_BY_MILESTONE: (
+    milestoneId,
+    pageIndex,
+    pageSize,
+    sortDir,
+    projectId,
+    assigneeId
+  ) =>
+    `/api/tasks?pageIndex=${pageIndex}&pageSize=${pageSize}&sortDir=${sortDir}` +
+    `${milestoneId ? `&milestoneId=${milestoneId}` : ""}` +
+    `${projectId ? `&projectId=${projectId}` : ""}` + 
+    `${assigneeId ? `&assigneeId=${assigneeId}` : ""}`,
   GET_TASK_BY_ID: (taskId) => `/api/tasks/${taskId}`,
   ADD_TASK: "/api/tasks",
   UPDATE_TASK: (taskId) => `/api/tasks/${taskId}`,
@@ -119,8 +129,8 @@ export const API_ENDPOINTS_SUBMISSION = {
 };
 
 export const API_ENDPOINTS_REDEEM = {
-  GET_ALL: (pageIndex, pageSize, userId, collected, sortDir) =>
-    `/api/redeemrequests?pageIndex=${pageIndex}&pageSize=${pageSize}${userId ? `&userId=${userId}` : ""}${collected !== null ? `&collected=${collected}` : ""}&sortDir=${sortDir}`,
+  GET_ALL: (pageIndex, pageSize, userId, collected, sortDir, status) =>
+    `/api/redeemrequests?pageIndex=${pageIndex}&pageSize=${pageSize}${userId ? `&userId=${userId}` : ""}${collected !== null ? `&collected=${collected}` : ""}&sortDir=${sortDir}${status ? `&status=${status}` : ""}`,
   CREATE: "/api/redeemrequests",
   GET_BY_USER: (userId) => `/api/redeemrequests/by-user/${userId}`,
   GET_BY_ID: (id) => `/api/redeemrequests/${id}`,

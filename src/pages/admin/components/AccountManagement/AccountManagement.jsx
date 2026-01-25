@@ -20,11 +20,17 @@ import userService from "../../../../services/apis/userApi";
 import CreateAccountModal from "./components/CreateAccountModal";
 import ViewAccountModal from "./components/ViewAccountModal";
 import EditAccountModal from "./components/EditAccountModal";
+import DeleteConfirmationModal from "./components/DeleteConfirmationModal";
+import { useNotification } from "../../../../hook/useNotification";
 
 export default function AccountManagement() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { showNotification } = useNotification();
+  // Thêm state mới cho delete modal
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
 
   // Filters & search
   const [searchTerm, setSearchTerm] = useState("");
@@ -78,7 +84,7 @@ export default function AccountManagement() {
       setUsers(response?.data?.contends || response.items || []);
       setTotalUsers(response?.data?.totalItems || response.total || 0);
       setTotalPages(
-        response.totalPages || Math.ceil((response.totalCount || 0) / pageSize)
+        response.totalPages || Math.ceil((response.totalCount || 0) / pageSize),
       );
     } catch (err) {
       console.error("Error loading user list:", err);
@@ -107,55 +113,25 @@ export default function AccountManagement() {
     setShowViewModal(true);
   };
 
-  const handleEditUser = (user) => {
-    setSelectedUser(user);
-    setShowEditModal(true);
+  const handleDeleteClick = (user) => {
+    setUserToDelete(user);
+    setShowDeleteModal(true);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this account?"))
-      return;
+  const handleDeleteConfirm = async () => {
+    if (!userToDelete) return;
 
     try {
-      await userService.deleteUser(id);
-      setUsers(users.filter((u) => u.id !== id));
-      alert("Delete successful!");
+      await userService.deleteUser(userToDelete.id);
+      setUsers(users.filter((u) => u.id !== userToDelete.id));
+      setTotalUsers((prev) => prev - 1);
+      showNotification("Account deleted successfully!", "success");
     } catch (err) {
-      console.error("Error deleting:", err);
-      alert("Delete failed!");
-    }
-  };
-
-  const handleToggleStatus = async (user) => {
-    const newStatus = user.status === "Active" ? "Inactive" : "Active";
-    const confirmMessage =
-      newStatus === "Active"
-        ? "Are you sure you want to activate this account?"
-        : "Are you sure you want to deactivate this account?";
-
-    if (!window.confirm(confirmMessage)) return;
-
-    try {
-      // Call API to update status
-      await userService.updateUserStatus(user.id, { status: newStatus });
-
-      // Update local state
-      setUsers(
-        users.map((u) =>
-          u.id === user.id
-            ? { ...u, status: newStatus, isActive: newStatus === "Active" }
-            : u
-        )
-      );
-
-      alert(
-        `Account has been ${
-          newStatus === "Active" ? "activated" : "deactivated"
-        }!`
-      );
-    } catch (err) {
-      console.error("Error updating status:", err);
-      alert("Status update failed!");
+      console.error("Error deleting account:", err);
+      showNotification("Delete failed! Please try again.", "error");
+    } finally {
+      setShowDeleteModal(false);
+      setUserToDelete(null);
     }
   };
 
@@ -176,39 +152,6 @@ export default function AccountManagement() {
     setUsers(users.map((u) => (u.id === updatedUser.id ? updatedUser : u)));
     setShowEditModal(false);
     alert("Account updated successfully!");
-  };
-
-  const handleExport = () => {
-    // Filter and format data for export
-    const exportData = users.map((user) => ({
-      ID: user.id,
-      "Full Name": user.name || user.fullName,
-      Email: user.email,
-      Role: user.role,
-      Status: user.status === "Active" ? "Active" : "Inactive",
-      "Created Date": user.createdAt || new Date().toLocaleDateString(),
-    }));
-
-    // Create CSV
-    const csvContent = [
-      Object.keys(exportData[0]).join(","),
-      ...exportData.map((row) => Object.values(row).join(",")),
-    ].join("\n");
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute(
-      "download",
-      `accounts_${new Date().toISOString().split("T")[0]}.csv`
-    );
-    link.style.visibility = "hidden";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    alert("CSV file exported successfully!");
   };
 
   // Function to format role display
@@ -285,14 +228,6 @@ export default function AccountManagement() {
             >
               <UserPlus size={20} />
               <span>Create Account</span>
-            </button>
-
-            <button
-              onClick={handleExport}
-              className="flex items-center gap-2 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 transition"
-            >
-              <Download size={20} />
-              <span>Export CSV</span>
             </button>
           </div>
         </div>
@@ -377,12 +312,12 @@ export default function AccountManagement() {
                               user.roles[0]?.name === "Mentor"
                                 ? "bg-purple-100 text-purple-800"
                                 : Array.isArray(user.roles) &&
-                                  user.roles[0]?.name === "User"
-                                ? "bg-green-100 text-green-800"
-                                : Array.isArray(user.roles) &&
-                                  user.roles[0]?.name === "Finance"
-                                ? "bg-yellow-100 text-yellow-800"
-                                : "bg-blue-100 text-blue-800"
+                                    user.roles[0]?.name === "User"
+                                  ? "bg-green-100 text-green-800"
+                                  : Array.isArray(user.roles) &&
+                                      user.roles[0]?.name === "Finance"
+                                    ? "bg-yellow-100 text-yellow-800"
+                                    : "bg-blue-100 text-blue-800"
                             }`}
                           >
                             {formatRoleDisplay(user)}
@@ -417,28 +352,14 @@ export default function AccountManagement() {
                             >
                               <Edit size={16} />
                             </button> */}
+                            {/* Đã thay đổi nút Deactive thành Delete */}
                             <button
-                              onClick={() => handleToggleStatus(user)}
-                              className="p-1.5 text-orange-600 hover:text-orange-800 hover:bg-orange-50 rounded"
-                              title={
-                                user.status === "Active"
-                                  ? "Deactivate account"
-                                  : "Activate account"
-                              }
-                            >
-                              {user.status === "Active" || user.isActive ? (
-                                <Lock size={16} />
-                              ) : (
-                                <Unlock size={16} />
-                              )}
-                            </button>
-                            {/* <button
-                              onClick={() => handleDelete(user.id)}
-                              className="p-1.5 text-red-600 hover:text-red-800 hover:bg-red-50 rounded"
+                              onClick={() => handleDeleteClick(user)}
+                              className="p-1.5 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors"
                               title="Delete account"
                             >
                               <Trash2 size={16} />
-                            </button> */}
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -500,7 +421,7 @@ export default function AccountManagement() {
                         (Array.isArray(u.roles) &&
                           u.roles[0]?.name === "Mentor") ||
                         u.role === "Mentor" ||
-                        u.role === "Giảng viên"
+                        u.role === "Giảng viên",
                     ).length
                   }
                 </p>
@@ -522,7 +443,7 @@ export default function AccountManagement() {
                         (Array.isArray(u.roles) &&
                           u.roles[0]?.name === "FinanceOfficer") ||
                         u.role === "Finance" ||
-                        u.role === "Nhân viên tài chính"
+                        u.role === "Nhân viên tài chính",
                     ).length
                   }
                 </p>
@@ -578,6 +499,16 @@ export default function AccountManagement() {
           user={selectedUser}
         />
       )}
+      <DeleteConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setUserToDelete(null);
+        }}
+        onConfirm={handleDeleteConfirm}
+        userName={userToDelete?.name || userToDelete?.fullName}
+        userEmail={userToDelete?.email}
+      />
     </motion.div>
   );
 }

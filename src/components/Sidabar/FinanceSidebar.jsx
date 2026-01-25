@@ -73,16 +73,16 @@ const FinanceSidebar = () => {
         <div className="p-6 border-b border-blue-700">
           <Link
             to="/finance/view-rewards"
-            className="flex items-center space-x-3"
+            className="flex items-center space-x-3 min-w-0"
           >
-            <div className="bg-white p-2 rounded-lg">
+            <div className="bg-white p-2 rounded-lg flex-shrink-0">
               <BarChart3 className="text-blue-600" size={24} />
             </div>
             {!isCollapsed && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="whitespace-nowrap overflow-hidden"
+                className="min-w-0 flex-1 overflow-hidden"
               >
                 <h1 className="text-xl font-bold truncate">Finance System</h1>
                 <p className="text-sm text-blue-200 truncate">Finance Panel</p>
@@ -93,7 +93,7 @@ const FinanceSidebar = () => {
 
         {/* Toggle Button */}
         <button
-          className="absolute -right-3 top-20 bg-blue-600 text-white p-1 rounded-full border-2 border-white hover:bg-blue-700 transition-colors"
+          className="absolute -right-3 top-20 bg-blue-600 text-white p-1 rounded-full border-2 border-white hover:bg-blue-700 transition-colors z-10"
           onClick={() => setIsCollapsed(!isCollapsed)}
         >
           {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
@@ -106,7 +106,7 @@ const FinanceSidebar = () => {
               key={item.path}
               to={item.path}
               className={({ isActive }) =>
-                `flex items-center space-x-3 p-3 rounded-lg transition-all hover:bg-blue-700 ${
+                `flex items-center space-x-3 p-3 rounded-lg transition-all hover:bg-blue-700 min-w-0 ${
                   isActive ? "bg-blue-600 shadow-md" : "hover:bg-blue-700/50"
                 }`
               }
@@ -116,7 +116,8 @@ const FinanceSidebar = () => {
                 <motion.span
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
-                  className="font-medium whitespace-nowrap"
+                  className="font-medium truncate overflow-hidden text-ellipsis whitespace-nowrap flex-1 min-w-0"
+                  title={item.title} // Thêm tooltip khi hover
                 >
                   {item.title}
                 </motion.span>
@@ -127,14 +128,16 @@ const FinanceSidebar = () => {
 
         {/* User Info & Logout */}
         <div className="p-4 border-t border-blue-700">
-          <div className="flex items-center space-x-3 mb-4">
-            <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
+          <div className="flex items-center space-x-3 mb-4 min-w-0">
+            <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
               <span className="font-bold">F</span>
             </div>
             {!isCollapsed && (
-              <div>
-                <p className="font-medium">{user.fullName}</p>
-                <p className="text-sm text-blue-200">
+              <div className="min-w-0 flex-1 overflow-hidden">
+                <p className="font-medium truncate overflow-hidden text-ellipsis whitespace-nowrap">
+                  {user.fullName}
+                </p>
+                <p className="text-sm text-blue-200 truncate overflow-hidden text-ellipsis whitespace-nowrap">
                   {user?.email || "finance@university.edu.vn"}
                 </p>
               </div>
@@ -142,10 +145,14 @@ const FinanceSidebar = () => {
           </div>
           <button
             onClick={handleLogout}
-            className="flex items-center space-x-3 w-full p-3 rounded-lg hover:bg-red-600/20 text-red-200 hover:text-red-100 transition-colors"
+            className="flex items-center space-x-3 w-full p-3 rounded-lg hover:bg-red-600/20 text-red-200 hover:text-red-100 transition-colors min-w-0"
           >
-            <LogOut size={20} />
-            {!isCollapsed && <span>Logout</span>}
+            <LogOut size={20} className="flex-shrink-0" />
+            {!isCollapsed && (
+              <span className="truncate overflow-hidden text-ellipsis whitespace-nowrap flex-1">
+                Logout
+              </span>
+            )}
           </button>
         </div>
       </motion.aside>
@@ -170,14 +177,16 @@ const FinanceSidebar = () => {
             <div className="p-6 border-b border-blue-700">
               <Link
                 to="/finance/view-rewards"
-                className="flex items-center space-x-3"
+                className="flex items-center space-x-3 min-w-0"
               >
-                <div className="bg-white p-2 rounded-lg">
+                <div className="bg-white p-2 rounded-lg flex-shrink-0">
                   <BarChart3 className="text-blue-600" size={24} />
                 </div>
-                <div>
-                  <h1 className="text-xl font-bold">Finance System</h1>
-                  <p className="text-sm text-blue-200">Finance Panel</p>
+                <div className="min-w-0 flex-1 overflow-hidden">
+                  <h1 className="text-xl font-bold truncate">Finance System</h1>
+                  <p className="text-sm text-blue-200 truncate">
+                    Finance Panel
+                  </p>
                 </div>
               </Link>
             </div>
@@ -188,36 +197,42 @@ const FinanceSidebar = () => {
                   key={item.path}
                   to={item.path}
                   className={({ isActive }) =>
-                    `flex items-center space-x-3 p-3 rounded-lg transition-all ${
+                    `flex items-center space-x-3 p-3 rounded-lg transition-all min-w-0 ${
                       isActive ? "bg-blue-600 shadow-md" : "hover:bg-blue-700"
                     }`
                   }
                   onClick={() => setIsMobileOpen(false)}
                 >
-                  {item.icon}
-                  <span className="font-medium">{item.title}</span>
+                  <div className="flex-shrink-0">{item.icon}</div>
+                  <span className="font-medium truncate overflow-hidden text-ellipsis whitespace-nowrap flex-1">
+                    {item.title}
+                  </span>
                 </NavLink>
               ))}
             </nav>
 
             <div className="p-4 border-t border-blue-700 mt-auto">
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
+              <div className="flex items-center space-x-3 mb-4 min-w-0">
+                <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
                   <span className="font-bold">F</span>
                 </div>
-                <div>
-                  <p className="font-medium">{user.fullName}</p>
-                  <p className="text-sm text-blue-200">
+                <div className="min-w-0 flex-1 overflow-hidden">
+                  <p className="font-medium truncate overflow-hidden text-ellipsis whitespace-nowrap">
+                    {user.fullName}
+                  </p>
+                  <p className="text-sm text-blue-200 truncate overflow-hidden text-ellipsis whitespace-nowrap">
                     {user?.email || "finance@university.edu.vn"}
                   </p>
                 </div>
               </div>
               <button
                 onClick={handleLogout}
-                className="flex items-center space-x-3 w-full p-3 rounded-lg hover:bg-red-600/20 text-red-200 hover:text-red-100 transition-colors"
+                className="flex items-center space-x-3 w-full p-3 rounded-lg hover:bg-red-600/20 text-red-200 hover:text-red-100 transition-colors min-w-0"
               >
-                <LogOut size={20} />
-                <span>Logout</span>
+                <LogOut size={20} className="flex-shrink-0" />
+                <span className="truncate overflow-hidden text-ellipsis whitespace-nowrap flex-1">
+                  Logout
+                </span>
               </button>
             </div>
           </motion.aside>
