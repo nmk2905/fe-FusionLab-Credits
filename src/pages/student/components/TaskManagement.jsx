@@ -21,7 +21,6 @@ import {
 import { AuthContext } from "../../../contexts/AuthContext";
 import taskService from "../../../services/apis/taskApi";
 import submissionApi from "../../../services/apis/submissionApi";
-import { useNavigate } from "react-router-dom";
 
 const STATUS_MAP = {
   pending: "InProgress",
@@ -55,11 +54,9 @@ const STATUS_ICONS = {
 
 const TASKS_PER_PAGE = 2; // Show 5 tasks per page
 
-export default function TaskManagement() {
+export default function TaskManagement({ projectId }) {
   const { user } = useContext(AuthContext);
-  const navigate = useNavigate();
 
-  const [projectId, setProjectId] = useState(null);
   const [tasksByMilestone, setTasksByMilestone] = useState({});
   const [submissions, setSubmissions] = useState({});
 
@@ -86,21 +83,6 @@ export default function TaskManagement() {
     }
   };
 
-  // Get current project (temporary hardcoded)
-  useEffect(() => {
-    const fetchCurrentProject = async () => {
-      if (!user?.id) return;
-      try {
-        setProjectId(15);
-        console.log("[PROJECT] Using temporary projectId = 15");
-      } catch (err) {
-        console.error("[PROJECT] Failed to get current project", err);
-        setError("Cannot determine your current project");
-      }
-    };
-    fetchCurrentProject();
-  }, [user?.id]);
-
   // Load tasks + submissions
   useEffect(() => {
     if (!projectId) return;
@@ -110,32 +92,20 @@ export default function TaskManagement() {
       setError(null);
 
       try {
-        const milestoneId = 7; // has tasks
-
-        const tasksRes = await taskService.getTasksByMilestone(
-          milestoneId,
-          1,
-          50,
-          "Asc"
-        );
+        const tasksRes = await taskService.getTasksByMilestone({
+          projectId: projectId,
+          assigneeId: user?.id,
+        });
+        console.log(tasksRes);
 
         let tasks = [];
-        if (tasksRes?.data && Array.isArray(tasksRes.data)) {
-          tasks = tasksRes.data;
-        } else if (Array.isArray(tasksRes)) {
-          tasks = tasksRes;
-        } else if (tasksRes?.rawResponse?.data && Array.isArray(tasksRes.rawResponse.data)) {
+        if (tasksRes.rawResponse.data) {
           tasks = tasksRes.rawResponse.data;
         }
-
-        setTasksByMilestone((prev) => ({
-          ...prev,
-          [milestoneId]: tasks,
-        }));
-
         if (tasks.length > 0) {
           await loadSubmissionsForTasks(tasks.map((t) => t.id));
         }
+        setTasksByMilestone(tasksRes.rawResponse.data);
       } catch (err) {
         console.error("[TASKS] Loading failed:", err);
         setError("Failed to load tasks.");
@@ -168,7 +138,9 @@ export default function TaskManagement() {
           subs = res.rawResponse.data;
 
         if (subs.length > 0) {
-          const sorted = subs.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+          const sorted = subs.sort(
+            (a, b) => new Date(b.submittedAt) - new Date(a.submittedAt),
+          );
           setSubmissions((prev) => ({ ...prev, [taskId]: sorted[0] }));
         }
       }
@@ -207,7 +179,11 @@ export default function TaskManagement() {
 
         setUploadStatus((prev) => ({
           ...prev,
-          [taskId]: { loading: false, success: true, message: "Submitted successfully!" },
+          [taskId]: {
+            loading: false,
+            success: true,
+            message: "Submitted successfully!",
+          },
         }));
 
         setSelectedFile(null);
@@ -218,7 +194,11 @@ export default function TaskManagement() {
     } catch (err) {
       setUploadStatus((prev) => ({
         ...prev,
-        [taskId]: { loading: false, success: false, message: err.message || "Failed to submit" },
+        [taskId]: {
+          loading: false,
+          success: false,
+          message: err.message || "Failed to submit",
+        },
       }));
     }
   };
@@ -236,9 +216,13 @@ export default function TaskManagement() {
       const formData = new FormData();
       formData.append("File", selectedFile);
 
-      const res = await submissionApi.updateSubmission(submission.id, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const res = await submissionApi.updateSubmission(
+        submission.id,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        },
+      );
 
       if (res.success || res.status === 200) {
         const updatedSubmission = res.data || res;
@@ -246,7 +230,11 @@ export default function TaskManagement() {
 
         setUploadStatus((prev) => ({
           ...prev,
-          [taskId]: { loading: false, success: true, message: "Updated successfully!" },
+          [taskId]: {
+            loading: false,
+            success: true,
+            message: "Updated successfully!",
+          },
         }));
 
         setSelectedFile(null);
@@ -257,7 +245,11 @@ export default function TaskManagement() {
     } catch (err) {
       setUploadStatus((prev) => ({
         ...prev,
-        [taskId]: { loading: false, success: false, message: err.message || "Failed to update" },
+        [taskId]: {
+          loading: false,
+          success: false,
+          message: err.message || "Failed to update",
+        },
       }));
     }
   };
@@ -266,7 +258,8 @@ export default function TaskManagement() {
     const submission = submissions[taskId];
     if (!submission?.id) return;
 
-    if (!window.confirm("Are you sure you want to delete this submission?")) return;
+    if (!window.confirm("Are you sure you want to delete this submission?"))
+      return;
 
     try {
       await submissionApi.deleteSubmission(submission.id);
@@ -279,7 +272,11 @@ export default function TaskManagement() {
 
       setUploadStatus((prev) => ({
         ...prev,
-        [taskId]: { loading: false, success: true, message: "Deleted successfully" },
+        [taskId]: {
+          loading: false,
+          success: true,
+          message: "Deleted successfully",
+        },
       }));
 
       setSelectedFile(null);
@@ -287,12 +284,19 @@ export default function TaskManagement() {
     } catch (err) {
       setUploadStatus((prev) => ({
         ...prev,
-        [taskId]: { loading: false, success: false, message: "Failed to delete" },
+        [taskId]: {
+          loading: false,
+          success: false,
+          message: "Failed to delete",
+        },
       }));
     }
   };
 
-  const allTasks = useMemo(() => Object.values(tasksByMilestone).flat(), [tasksByMilestone]);
+  const allTasks = useMemo(
+    () => Object.values(tasksByMilestone).flat(),
+    [tasksByMilestone],
+  );
 
   // Pagination logic
   const totalPages = Math.ceil(allTasks.length / TASKS_PER_PAGE);
@@ -312,7 +316,9 @@ export default function TaskManagement() {
       <div className="p-8 text-center text-gray-600">
         <AlertCircle size={64} className="mx-auto mb-6 text-orange-500" />
         <h2 className="text-2xl font-bold text-gray-800">No active project</h2>
-        <p className="mt-3 text-gray-600">Please join a project first to see your tasks.</p>
+        <p className="mt-3 text-gray-600">
+          Please join a project first to see your tasks.
+        </p>
       </div>
     );
   }
@@ -377,7 +383,8 @@ export default function TaskManagement() {
               const submission = submissions[task.id];
               const status = submission?.status || mappedStatus;
               const isUploading = uploadStatus[task.id]?.loading;
-              const hasFileSelected = !!selectedFile && uploadingTaskId === task.id;
+              const hasFileSelected =
+                !!selectedFile && uploadingTaskId === task.id;
 
               return (
                 <div
@@ -387,7 +394,9 @@ export default function TaskManagement() {
                   <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-8">
                     <div className="flex-1">
                       <div className="flex items-start gap-5">
-                        <div className={`p-4 rounded-2xl ${STATUS_COLORS[status]}`}>
+                        <div
+                          className={`p-4 rounded-2xl ${STATUS_COLORS[status]}`}
+                        >
                           {STATUS_ICONS[status]}
                         </div>
                         <div>
@@ -403,7 +412,9 @@ export default function TaskManagement() {
                               <span>
                                 Due:{" "}
                                 {task.dueDate
-                                  ? new Date(task.dueDate).toLocaleDateString("en-GB")
+                                  ? new Date(task.dueDate).toLocaleDateString(
+                                      "en-GB",
+                                    )
                                   : "No deadline"}
                               </span>
                             </div>
@@ -423,14 +434,21 @@ export default function TaskManagement() {
                       {submission ? (
                         <div className="w-full text-sm text-gray-700 text-right space-y-3 bg-gray-50 p-4 rounded-2xl border border-gray-100">
                           <p>
-                            Submitted: {new Date(submission.submittedAt).toLocaleString()}
+                            Submitted:{" "}
+                            {new Date(submission.submittedAt).toLocaleString()}
                           </p>
                           <p>
-                            Status: <strong className="text-orange-600">{submission.status}</strong>
+                            Status:{" "}
+                            <strong className="text-orange-600">
+                              {submission.status}
+                            </strong>
                           </p>
                           {submission.grade !== null && (
                             <p className="font-medium">
-                              Grade: <span className="text-green-600">{submission.grade}</span>
+                              Grade:{" "}
+                              <span className="text-green-600">
+                                {submission.grade}
+                              </span>
                             </p>
                           )}
 
@@ -467,7 +485,9 @@ export default function TaskManagement() {
                                   <X size={20} />
                                 </button>
                                 <button
-                                  onClick={() => handleUpdateSubmission(task.id)}
+                                  onClick={() =>
+                                    handleUpdateSubmission(task.id)
+                                  }
                                   disabled={isUploading}
                                   className={`px-6 py-2.5 rounded-xl text-white text-sm font-medium flex items-center gap-2 shadow-md ${
                                     isUploading
@@ -487,12 +507,16 @@ export default function TaskManagement() {
                                   <input
                                     type="file"
                                     className="hidden"
-                                    onChange={(e) => handleFileChange(e, task.id)}
+                                    onChange={(e) =>
+                                      handleFileChange(e, task.id)
+                                    }
                                   />
                                 </label>
 
                                 <button
-                                  onClick={() => handleDeleteSubmission(task.id)}
+                                  onClick={() =>
+                                    handleDeleteSubmission(task.id)
+                                  }
                                   className="inline-flex items-center gap-2 px-5 py-2.5 bg-red-50 hover:bg-red-100 text-red-700 rounded-xl font-medium transition-colors"
                                 >
                                   <Trash2 size={18} />
@@ -505,7 +529,9 @@ export default function TaskManagement() {
                           {uploadStatus[task.id]?.message && (
                             <p
                               className={`text-sm mt-3 font-medium ${
-                                uploadStatus[task.id]?.success ? "text-green-600" : "text-red-600"
+                                uploadStatus[task.id]?.success
+                                  ? "text-green-600"
+                                  : "text-red-600"
                               }`}
                             >
                               {uploadStatus[task.id].message}
@@ -558,7 +584,9 @@ export default function TaskManagement() {
                           {uploadStatus[task.id]?.message && (
                             <p
                               className={`mt-4 text-sm font-medium ${
-                                uploadStatus[task.id]?.success ? "text-green-600" : "text-red-600"
+                                uploadStatus[task.id]?.success
+                                  ? "text-green-600"
+                                  : "text-red-600"
                               }`}
                             >
                               {uploadStatus[task.id].message}

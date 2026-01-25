@@ -19,7 +19,7 @@ export const API_ENDPOINTS_USER = {
   ) =>
     `/api/Users?Search=${search}&Role=${role}&PageIndex=${pageIndex}&PageSize=${pageSize}&SortDir=${sortDir}`,
   GET_USER: (userId) => `/api/Users/${userId}`,
-  UPDATE_INFORMATION_USER: "/api/User/UpdateInfoUser",
+  DELETE_USER: (userId) => `/api/Users/${userId}`,
 };
 
 export const API_ENDPOINTS_PROJECT = {
@@ -76,8 +76,18 @@ export const API_ENDPOINTS_MILESTONE = {
 };
 
 export const API_ENDPOINTS_TASK = {
-  GET_TASKS_BY_MILESTONE: (milestoneId, pageIndex, pageSize, sortDir) =>
-    `/api/tasks?milestoneId=${milestoneId}&pageIndex=${pageIndex}&pageSize=${pageSize}&sortDir=${sortDir}`,
+  GET_TASKS_BY_MILESTONE: (
+    milestoneId,
+    pageIndex,
+    pageSize,
+    sortDir,
+    projectId,
+    assigneeId
+  ) =>
+    `/api/tasks?pageIndex=${pageIndex}&pageSize=${pageSize}&sortDir=${sortDir}` +
+    `${milestoneId ? `&milestoneId=${milestoneId}` : ""}` +
+    `${projectId ? `&projectId=${projectId}` : ""}` + 
+    `${assigneeId ? `&assigneeId=${assigneeId}` : ""}`,
   GET_TASK_BY_ID: (taskId) => `/api/tasks/${taskId}`,
   ADD_TASK: "/api/tasks",
   UPDATE_TASK: (taskId) => `/api/tasks/${taskId}`,

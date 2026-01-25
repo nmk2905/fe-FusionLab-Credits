@@ -26,7 +26,6 @@ const StudentSidebar = () => {
     { to: "/student/dashboard", label: "Dashboard", icon: Home },
     { to: "/student/my-points", label: "My Points", icon: Trophy },
     { to: "/student/group-management", label: "Group Management", icon: Group },
-    { to: "/student/task-management", label: "Task Management", icon: Target },
     { to: "/student/point-exchange", label: "Point Exchange", icon: Sparkles },
   ];
 
