@@ -3,7 +3,6 @@ import React, { useContext, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
-  FolderKanban,
   BarChart3,
   LogOut,
   ChevronLeft,
@@ -12,7 +11,7 @@ import {
   X,
   Eye,
   PlusCircle,
-  Flag,
+  ClipboardList,
 } from "lucide-react";
 import { AuthContext } from "../../contexts/AuthContext";
 
@@ -31,6 +30,11 @@ const FinanceSidebar = () => {
       title: "Create Rewards",
       icon: <PlusCircle size={20} />,
       path: "/finance-officer/create-rewards",
+    },
+    {
+      title: "View Redeem Requests",
+      icon: <ClipboardList size={20} />,
+      path: "/finance-officer/view-redeem-requests",
     },
   ];
 

@@ -5,6 +5,7 @@ import Loading from "../../components/Loading/Loading";
 import FinanceLayout from "../../components/layout/FinanceLayout";
 import CreateRewards from "./components/CreateRewards";
 import ViewRewards from "./components/ViewRewards";
+import ViewRedeemRequests from "./components/RedeemRequest/ViewRedeemRequest";
 
 const FinanceOfficerPageWrapper = ({ children }) => {
   return <FinanceLayout>{children}</FinanceLayout>;
@@ -30,6 +31,14 @@ export default function FinanceOfficer() {
         element={
           <FinanceOfficerPageWrapper>
             <CreateRewards />
+          </FinanceOfficerPageWrapper>
+        }
+      />
+      <Route
+        path="view-redeem-requests"
+        element={
+          <FinanceOfficerPageWrapper>
+            <ViewRedeemRequests />
           </FinanceOfficerPageWrapper>
         }
       />
