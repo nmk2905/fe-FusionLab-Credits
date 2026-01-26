@@ -21,11 +21,11 @@ const TaskList = ({ milestoneId, milestone }) => {
     try {
       setLoading(true);
       const response = await taskService.getTasksByMilestone(
-        milestoneId,
-        1,
-        100,
-        "Desc",
-      );
+        {milestoneId: milestoneId,
+        pageIndex: 1,
+        pageSize: 100,
+        sortDir: "Desc",
+    });
 
       let tasksData = [];
       if (response?.rawResponse?.data) {
