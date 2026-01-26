@@ -14,7 +14,7 @@ const projectMemberService = {
     projectId,
     userId,
     sortColumn = "Id",
-    sortDir = "Asc",
+    sortDir = "Desc",
   }) {
     let endpoint = `${API_ENDPOINTS_PROJECT_MEMBER.GET_ALL}?pageIndex=${pageIndex}&pageSize=${pageSize}&sortColumn=${sortColumn}&sortDir=${sortDir}`;
 

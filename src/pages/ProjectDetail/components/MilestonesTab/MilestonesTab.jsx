@@ -47,8 +47,6 @@ const MilestonesTab = ({ projectId }) => {
         projectId
       );
 
-      console.log("Milestones API Response:", response);
-
       let milestonesData = [];
 
       if (Array.isArray(response)) {

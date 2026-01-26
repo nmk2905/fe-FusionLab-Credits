@@ -17,7 +17,7 @@ const TeamTab = ({ projectId }) => {
   const [teamMembersLoading, setTeamMembersLoading] = useState(false);
   const role = localStorage.getItem("role");
 
-  useEffect(() => {
+   useEffect(() => {
     const fetchProjectMembersWithDetails = async () => {
       try {
         setTeamMembersLoading(true);
@@ -48,21 +48,34 @@ const TeamTab = ({ projectId }) => {
           return;
         }
 
-        // 2. Lấy thông tin chi tiết của users
-        const usersResponse = await userService.getCurrentUser(userIds);
+        // 2. Lấy thông tin chi tiết của users - SỬA CHỖ NÀY
+        const usersPromises = userIds.map(userId => 
+          userService.getCurrentUser(userId).catch(error => {
+            console.error(`Error fetching user ${userId}:`, error);
+            return null;
+          })
+        );
+
+        const usersResponses = await Promise.all(usersPromises);
         let usersData = [];
 
-        if (usersResponse?.rawResponse?.data) {
-          usersData = Array.isArray(usersResponse.rawResponse.data)
-            ? usersResponse.rawResponse.data
-            : [usersResponse.rawResponse.data];
-        } else if (usersResponse?.data) {
-          usersData = Array.isArray(usersResponse.data)
-            ? usersResponse.data
-            : [usersResponse.data];
-        } else if (Array.isArray(usersResponse)) {
-          usersData = usersResponse;
-        }
+        usersResponses.forEach(response => {
+          if (!response) return;
+          
+          let userData = null;
+          
+          if (response?.rawResponse?.data) {
+            userData = response.rawResponse.data;
+          } else if (response?.data) {
+            userData = response.data;
+          } else if (response && typeof response === 'object' && response.id) {
+            userData = response;
+          }
+          
+          if (userData) {
+            usersData.push(userData);
+          }
+        });
 
         // 3. Kết hợp thông tin
         const memberDetails = projectMembers.map((projectMember) => {
@@ -174,15 +187,7 @@ const TeamTab = ({ projectId }) => {
         <h3 className="text-lg font-semibold text-gray-800">
           Team Members ({teamMemberDetails.length})
         </h3>
-        {role === "Mentor" && (
-          <button
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            onClick={handleAddMember}
-          >
-            <UserPlus size={18} />
-            Add Member
-          </button>
-        )}
+        
       </div>
 
       {teamMembersLoading ? (
