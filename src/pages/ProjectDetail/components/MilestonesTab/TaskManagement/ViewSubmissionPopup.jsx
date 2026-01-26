@@ -424,7 +424,7 @@ const ViewSubmissionPopup = ({ isOpen, onClose, taskId, taskLabel }) => {
                           <input
                             type="number"
                             min="0"
-                            max="100"
+                            max="10"
                             value={reviewData.score}
                             onChange={(e) =>
                               setReviewData({
@@ -436,7 +436,7 @@ const ViewSubmissionPopup = ({ isOpen, onClose, taskId, taskLabel }) => {
                             placeholder="Enter score"
                           />
                           <span className="absolute right-3 top-3 text-gray-500">
-                            /100
+                            /10
                           </span>
                         </div>
                       </div>
