@@ -146,3 +146,10 @@ export const API_ENDPOINTS_WALLET = {
   GET_BALANCE: (userId) => `/api/Wallets/user/${userId}/balance`,
   DELETE: (id) => `/api/Wallets/${id}`,
 };
+export const API_ENDPOINTS_DASHBOARD = {
+  GET_PROJECT_COUNTS: (semesterId) =>
+    `/api/dashboard/dashboard/count?semesterId=${semesterId}`,
+
+  GET_TOTAL_USERS: (semesterId) =>
+    `/api/dashboard/${semesterId}/users/total`,
+}
