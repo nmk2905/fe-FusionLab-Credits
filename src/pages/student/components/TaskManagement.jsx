@@ -53,6 +53,7 @@ const STATUS_ICONS = {
 };
 
 const COMMENTABLE_STATUSES = ["Approved", "Rejected", "Denied", "Reviewed"];
+const FINAL_STATUSES = ["Approved", "Reviewed"]; // These prevent further submissions
 
 const TASKS_PER_PAGE = 2;
 
@@ -384,7 +385,9 @@ export default function TaskManagement({ projectId }) {
               const status = submission?.status || mappedStatus;
               const isUploading = uploadStatus[task.id]?.loading;
               const hasFileSelected = !!selectedFile && uploadingTaskId === task.id;
-              const isFinal = COMMENTABLE_STATUSES.includes(submission?.status);
+
+              const isCommentable = submission && COMMENTABLE_STATUSES.includes(submission.status);
+              const canResubmit = !submission || !FINAL_STATUSES.includes(submission.status);
 
               return (
                 <div
@@ -433,7 +436,7 @@ export default function TaskManagement({ projectId }) {
                           {status}
                         </div>
 
-                        {isFinal && (
+                        {isCommentable && (
                           <button
                             onClick={() => setSelectedSubmission(submission)}
                             className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl font-medium transition-colors"
@@ -477,8 +480,8 @@ export default function TaskManagement({ projectId }) {
                             </div>
                           )}
 
-                          {/* Only show upload/re-submit/delete area if NOT final status */}
-                          {!isFinal && (
+                          {/* Show upload/re-submit/delete only if can resubmit */}
+                          {canResubmit && (
                             <div className="flex flex-col gap-3 mt-5">
                               {hasFileSelected ? (
                                 <div className="flex items-center justify-end gap-4">
