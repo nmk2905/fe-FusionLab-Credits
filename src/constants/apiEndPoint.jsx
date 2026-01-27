@@ -39,6 +39,7 @@ export const API_ENDPOINTS_PROJECT = {
     `/api/projects/history/${userId}?pageIndex=${pageIndex}&pageSize=${pageSize}&sortColumn=${sortColumn}&sortDir=${sortDir}`,
   START_PROJECT: (projectId) => `/api/projects/${projectId}/start`,
   CLOSE_PROJECT: (projectId) => `/api/projects/${projectId}/close`,
+  COMPLETE_PROJECT: (projectId, mentorId) => `/api/projects/${projectId}/complete?mentorId=${mentorId}`,
 };
 
 export const API_ENDPOINTS_SEMESTER = {

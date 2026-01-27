@@ -54,6 +54,10 @@ const projectService = {
   async closeProject(projectId) {
     return apiUtils.post(API_ENDPOINTS_PROJECT.CLOSE_PROJECT(projectId));
   },
+
+  async completeProject(projectId, mentorId) {
+    return apiUtils.post(API_ENDPOINTS_PROJECT.COMPLETE_PROJECT(projectId, mentorId));
+  }
 };
 
 export default projectService;

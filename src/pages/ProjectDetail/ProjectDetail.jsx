@@ -1,5 +1,5 @@
 // src/ProjectDetail/ProjectDetail.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { ChevronRight, ArrowLeft, Play, X, CheckCircle } from "lucide-react";
 import projectService from "../../services/apis/projectApi";
@@ -10,6 +10,7 @@ import OverviewTab from "./components/OverviewTab";
 import MilestonesTab from "./components/MilestonesTab/MilestonesTab";
 import MentorTab from "./components/MentorTab";
 import TeamTab from "./components/TeamTab";
+import { AuthContext } from "../../contexts/AuthContext";
 
 const ProjectDetail = () => {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ const ProjectDetail = () => {
   const activeTab = searchParams.get("tab") || "overview";
   const { projectId } = useParams();
   const { showNotification } = useNotification();
+  const { user } = useContext(AuthContext);
 
   // Lấy role từ localStorage
   const [userRole, setUserRole] = useState(null);
@@ -138,6 +140,32 @@ const ProjectDetail = () => {
         return "Completed";
       default:
         return status || "Unknown";
+    }
+  };
+
+  const handleMarkComplete = async () => {
+    if (!projectId) return;
+
+    try {
+      setIsUpdating(true);
+      const response = await projectService.completeProject(projectId, user.id);
+
+      if (response.success) {
+        // Cập nhật trạng thái project
+        setProject((prev) => ({
+          ...prev,
+          status: "Complete",
+        }));
+
+        showNotification("Project marked as complete successfully", "success");
+      } else {
+        showNotification(response.error, "error");
+      }
+    } catch (error) {
+      console.error("Error marking project complete:", error);
+      showNotification("Failed to mark project complete", "error");
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -269,14 +297,7 @@ const ProjectDetail = () => {
                   {/* Complete Project Button - Chỉ hiển thị khi status là InProcess */}
                   {shouldShowMarkComplete && (
                     <button
-                      onClick={() => {
-                        // TODO: Implement API Complete Project nếu có
-                        console.log("Complete project clicked");
-                        showNotification(
-                          "Mark Complete feature coming soon",
-                          "info",
-                        );
-                      }}
+                      onClick={handleMarkComplete}
                       className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                     >
                       <CheckCircle size={16} />
