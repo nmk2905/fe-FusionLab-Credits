@@ -21,7 +21,7 @@ export default function CreateProject() {
     description: "",
     totalPoints: 0,
     semesterId: 0,
-    proposerId: 9, // Assuming this comes from logged in user
+    proposerId: 4, // Assuming this comes from logged in user
     mentorId: 0,
     minMembers: 2,
     maxMembers: 6,
@@ -112,7 +112,7 @@ export default function CreateProject() {
           description: "",
           totalPoints: 0,
           semesterId: semesters[0]?.id || 0,
-          proposerId: 9,
+          proposerId: 4,
           mentorId: 0,
           minMembers: 50,
           maxMembers: 50,
