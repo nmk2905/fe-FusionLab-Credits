@@ -8,6 +8,8 @@ import {
 } from "@heroicons/react/24/outline"; // Thêm ArrowLeftIcon
 import TaskList from "./TaskManagement/TaskList";
 import milestoneService from "../../../../services/apis/milestoneApi";
+import MilestoneUpdatePopup from "./MilestoneUpdatePopup";
+import { ExclamationTriangleIcon } from "@heroicons/react/24/outline"; // Thêm icon mới
 
 const MilestoneDetail = () => {
   const { milestoneId } = useParams();
@@ -17,26 +19,42 @@ const MilestoneDetail = () => {
   const [error, setError] = useState(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = searchParams.get("tab") || "detail";
+  const [isUpdatePopupOpen, setIsUpdatePopupOpen] = useState(false);
+
+  // Thêm function để mở/đóng popup
+  const handleOpenUpdatePopup = () => {
+    setIsUpdatePopupOpen(true);
+  };
+
+  const handleCloseUpdatePopup = () => {
+    setIsUpdatePopupOpen(false);
+  };
+
+  const handleUpdateSuccess = (updatedData) => {
+    // Refresh milestone data
+    fetchMilestone();
+    setIsUpdatePopupOpen(false);
+  };
 
   useEffect(() => {
-    const fetchMilestone = async () => {
-      try {
-        setLoading(true);
-        const response = await milestoneService.getMilestoneById(milestoneId);
-        setMilestone(response.data);
-        setError(null);
-      } catch (err) {
-        setError("Không thể tải dữ liệu milestone. Vui lòng thử lại sau.");
-        console.error("Error fetching milestone:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     if (milestoneId) {
       fetchMilestone();
     }
   }, [milestoneId]);
+
+  const fetchMilestone = async () => {
+    try {
+      setLoading(true);
+      const response = await milestoneService.getMilestoneById(milestoneId);
+      setMilestone(response.data);
+      setError(null);
+    } catch (err) {
+      setError("Không thể tải dữ liệu milestone. Vui lòng thử lại sau.");
+      console.error("Error fetching milestone:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Hàm xử lý quay lại
   const handleBack = () => {
@@ -186,14 +204,28 @@ const MilestoneDetail = () => {
               )}
             </div>
           </div>
+          <div className="mt-4 sm:mt-0">
+            <button
+              onClick={handleOpenUpdatePopup}
+              className={`flex items-center px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
+                milestone.isDelayed
+                  ? "bg-amber-100 text-amber-800 hover:bg-amber-200"
+                  : "bg-red-100 text-red-800 hover:bg-red-200"
+              }`}
+            >
+              <ExclamationTriangleIcon className="w-5 h-5 mr-2" />
+              {milestone.isDelayed ? "Update Delay Status" : "Mark as Delayed"}
+            </button>
+          </div>
         </div>
       </div>
-
       {/* Tabs */}
       <div className="border-b border-gray-200">
         <nav className="-mb-px flex space-x-8">
           <button
-            onClick={() => setSearchParams({ tab: "detail" }, { replace: true })}
+            onClick={() =>
+              setSearchParams({ tab: "detail" }, { replace: true })
+            }
             className={`py-4 px-1 border-b-2 font-medium text-sm ${
               activeTab === "detail"
                 ? "border-blue-500 text-blue-600"
@@ -244,7 +276,6 @@ const MilestoneDetail = () => {
           </button>
         </nav>
       </div>
-
       {/* Tab Content */}
       <div className="mt-8">
         {activeTab === "detail" ? (
@@ -445,6 +476,14 @@ const MilestoneDetail = () => {
           </div>
         )}
       </div>
+      {isUpdatePopupOpen && (
+        <MilestoneUpdatePopup
+          milestoneId={milestoneId}
+          isOpen={isUpdatePopupOpen}
+          onClose={handleCloseUpdatePopup}
+          onSuccess={handleUpdateSuccess}
+        />
+      )}
     </div>
   );
 };

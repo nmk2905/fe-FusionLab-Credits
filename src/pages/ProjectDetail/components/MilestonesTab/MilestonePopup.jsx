@@ -564,7 +564,7 @@ const MilestonePopup = ({ projectId, isOpen, onClose, onSuccess }) => {
               </div>
 
               {/* Is Delayed Checkbox */}
-              <div
+              {/* <div
                 className={`flex items-center gap-4 p-4 rounded-lg transition-all duration-200 ${
                   formData.isDelayed
                     ? "bg-amber-50 border border-amber-200"
@@ -615,11 +615,10 @@ const MilestonePopup = ({ projectId, isOpen, onClose, onSuccess }) => {
                     )}
                   </label>
                   <p className="text-sm text-gray-600 mt-1">
-                    Check this if the milestone is delayed from its original
-                    schedule
+                    Check this if the milestone is delayed from its original schedule
                   </p>
                 </div>
-              </div>
+              </div> */}
 
               {/* Submit Button */}
               <div className="flex gap-4 pt-6 border-t border-gray-200">
